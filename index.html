@@ -11,21 +11,21 @@
     <meta name="application-name" content="XBZ Prime TV">
 
     <!-- Primary Meta Tags -->
-    <title>XBZ Prime TV ⚽ Live Sports Streaming | Football, Cricket & More</title>
-    <meta name="title" content="XBZ Prime TV ⚽ Live Sports Streaming | Football, Cricket & More">
+    <title>XBZ Prime TV | Live Sports Streaming | Football, Cricket &amp; More</title>
+    <meta name="title" content="XBZ Prime TV | Live Sports Streaming | Football, Cricket &amp; More">
     <meta name="description" content="XBZ Prime TV - Premium sports live streaming platform. Watch live football, cricket, and more sports channels in HD quality. Free sports streaming with live scores, match updates, and 24/7 channels.">
     <meta name="keywords" content="live sports streaming, football live, cricket live, sports channels, free sports streaming, live football, live cricket, XBZ Prime TV, sports TV, live match today">
     <meta name="author" content="Naim Xbz">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow">
-    <link rel="canonical" href="https://naimxbzbd.github.io/XBZ-Prime-TV/">
+    <link rel="canonical" href="https://xbzprimetvweb.netlify.app/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://naimxbzbd.github.io/XBZ-Prime-TV/">
-    <meta property="og:title" content="XBZ Prime TV ⚽ Live Sports Streaming | Football, Cricket & More">
+    <meta property="og:url" content="https://xbzprimetvweb.netlify.app/">
+    <meta property="og:title" content="XBZ Prime TV | Live Sports Streaming | Football, Cricket &amp; More">
     <meta property="og:description" content="Premium sports live streaming platform. Watch live football, cricket, and more sports channels in HD quality. Free sports streaming with live scores.">
-    <meta property="og:image" content="https://naimxbzbd.github.io/XBZ-Prime-TV/assets/og-image.webp">
+    <meta property="og:image" content="https://xbzprimetvweb.netlify.app/assets/placeholder.webp">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="XBZ Prime TV">
@@ -33,10 +33,10 @@
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://naimxbzbd.github.io/XBZ-Prime-TV/">
-    <meta name="twitter:title" content="XBZ Prime TV ⚽ Live Sports Streaming | Football, Cricket & More">
+    <meta name="twitter:url" content="https://xbzprimetvweb.netlify.app/">
+    <meta name="twitter:title" content="XBZ Prime TV | Live Sports Streaming | Football, Cricket &amp; More">
     <meta name="twitter:description" content="Premium sports live streaming platform. Watch live football, cricket, and more sports channels in HD quality.">
-    <meta name="twitter:image" content="https://naimxbzbd.github.io/XBZ-Prime-TV/assets/og-image.webp">
+    <meta name="twitter:image" content="https://xbzprimetvweb.netlify.app/assets/placeholder.webp">
     <meta name="twitter:creator" content="@naimxbz">
 
     <!-- Structured Data -->
@@ -45,7 +45,7 @@
             "@context": "https://schema.org",
             "@type": "WebApplication",
             "name": "XBZ Prime TV",
-            "url": "https://naimxbzbd.github.io/XBZ-Prime-TV/",
+            "url": "https://xbzprimetvweb.netlify.app/",
             "description": "Premium sports live streaming platform with live football, cricket, and sports channels.",
             "applicationCategory": "Entertainment",
             "operatingSystem": "All",
@@ -62,12 +62,11 @@
     </script>
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon.png">
-    <link rel="mask-icon" href="assets/favicon.png" color="#e63946">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -399,7 +398,7 @@
                             <div class="stream-input-group">
                                 <textarea id="m3u-input" class="stream-textarea" placeholder="Paste M3U playlist content or URL..." rows="5" aria-label="M3U playlist"></textarea>
                                 <button id="m3u-load" class="btn btn-primary">
-                                    <i class="fas fa-download"></i> Load & Parse
+                                    <i class="fas fa-download"></i> Load &amp; Parse
                                 </button>
                             </div>
                         </div>
@@ -527,7 +526,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js').then(function(registration) {
+                navigator.serviceWorker.register('/sw.js', {
+                    scope: '/'
+                }).then(function(registration) {
                     console.log('[PWA] Service Worker registered with scope:', registration.scope);
                 }).catch(function(error) {
                     console.log('[PWA] Service Worker registration failed:', error);
