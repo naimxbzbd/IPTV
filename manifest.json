@@ -1,0 +1,189 @@
+{
+    "name": "XBZ Prime TV - Live Sports Streaming",
+    "short_name": "XBZ Prime TV",
+    "description": "Premium sports live streaming platform. Watch live football, cricket, and more sports channels in HD quality. Free sports streaming with live scores and match updates.",
+    "start_url": "/XBZ-Prime-TV/",
+    "scope": "/XBZ-Prime-TV/",
+    "id": "xbz-prime-tv-v2",
+    "display": "standalone",
+    "display_override": [
+        "standalone",
+        "fullscreen",
+        "minimal-ui"
+    ],
+    "orientation": "any",
+    "theme_color": "#0a0e27",
+    "background_color": "#0a0e27",
+    "categories": [
+        "entertainment",
+        "sports",
+        "utilities"
+    ],
+    "lang": "en",
+    "dir": "ltr",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "assets/favicon.png",
+            "sizes": "48x48",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "256x256",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "monochrome"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "assets/placeholder.webp",
+            "sizes": "1280x720",
+            "type": "image/webp",
+            "form_factor": "wide",
+            "label": "XBZ Prime TV Home Screen with Live Player"
+        },
+        {
+            "src": "assets/placeholder.webp",
+            "sizes": "750x1334",
+            "type": "image/webp",
+            "form_factor": "narrow",
+            "label": "XBZ Prime TV Mobile View"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Live Matches",
+            "short_name": "Matches",
+            "description": "View live football matches and scores",
+            "url": "/XBZ-Prime-TV/?view=matches",
+            "icons": [
+                {
+                    "src": "assets/favicon.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Play URL",
+            "short_name": "Play",
+            "description": "Play a custom stream URL",
+            "url": "/XBZ-Prime-TV/?view=play",
+            "icons": [
+                {
+                    "src": "assets/favicon.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Sports Channels",
+            "short_name": "Channels",
+            "description": "Browse all sports channels",
+            "url": "/XBZ-Prime-TV/?view=channels",
+            "icons": [
+                {
+                    "src": "assets/favicon.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "iarc_rating_id": "",
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    "handle_links": "preferred",
+    "launch_handler": {
+        "client_mode": [
+            "navigate-existing",
+            "auto"
+        ]
+    },
+    "protocol_handlers": [
+        {
+            "protocol": "web+xbz",
+            "url": "/XBZ-Prime-TV/?stream=%s"
+        }
+    ],
+    "share_target": {
+        "action": "/XBZ-Prime-TV/",
+        "method": "GET",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    }
+}
