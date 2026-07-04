@@ -6,10 +6,6 @@
 'use strict';
 
 const CONFIG = {
-    /* ==========================================
-       APP METADATA
-       ========================================== */
-
     APP_NAME: 'XBZ Prime TV',
     APP_VERSION: '2.0.0',
     APP_AUTHOR: 'Naim Xbz',
@@ -17,11 +13,11 @@ const CONFIG = {
     APP_DESCRIPTION: 'Premium Sports Live Streaming Platform',
     APP_KEYWORDS: 'live sports, football streaming, cricket live, sports TV, XBZ Prime TV',
 
-    /* ==========================================
-       URLS & ENDPOINTS
-       ========================================== */
-
-    // GitHub Raw URLs
+    IS_NETLIFY: window.location.hostname.includes('netlify.app'),
+    IS_LOCAL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+    
+    CORS_PROXY: '',
+    
     GITHUB_PLAYLIST_URLS: [
         'https://raw.githubusercontent.com/naimxbzbd/XBZ-Prime-TV/refs/heads/main/playlist.m3u',
         'https://raw.githubusercontent.com/sanjoykb/-KB-TV-Playlist/refs/heads/main/Github%20Auto%20Update%20Channel.m3u'
@@ -29,42 +25,28 @@ const CONFIG = {
 
     GITHUB_BREAKING_NEWS_URL: 'https://raw.githubusercontent.com/naimxbzbd/XBZ-Prime-TV/main/data/breaking.json',
 
-    // Football Data API
     FOOTBALL_API_BASE_URL: 'https://api.football-data.org/v4',
     FOOTBALL_API_KEY: '1343f48af11546bd8be28141f72e8739',
     FOOTBALL_API_MATCHES_ENDPOINT: '/matches',
 
-    // Social Links
     TELEGRAM_URL: 'https://t.me/naimxbz',
     GITHUB_URL: 'https://github.com/naimxbzbd',
     CONTACT_EMAIL: 'contact@xbzprime.tv',
 
-    /* ==========================================
-       CACHE & REFRESH SETTINGS
-       ========================================== */
+    CACHE_PLAYLIST: 30 * 60 * 1000,
+    CACHE_BREAKING_NEWS: 60 * 1000,
+    CACHE_FOOTBALL_MATCHES: 10 * 1000,
+    CACHE_THEME: 24 * 60 * 60 * 1000,
 
-    // Cache Durations (in milliseconds)
-    CACHE_PLAYLIST: 30 * 60 * 1000,        // 30 minutes
-    CACHE_BREAKING_NEWS: 60 * 1000,         // 1 minute
-    CACHE_FOOTBALL_MATCHES: 10 * 1000,      // 10 seconds
-    CACHE_THEME: 24 * 60 * 60 * 1000,       // 24 hours
+    REFRESH_PLAYLIST: 30 * 60 * 1000,
+    REFRESH_BREAKING_NEWS: 60 * 1000,
+    REFRESH_FOOTBALL_MATCHES: 10 * 1000,
+    REFRESH_SCORE_TICKER: 40 * 1000,
 
-    // Auto Refresh Intervals (in milliseconds)
-    REFRESH_PLAYLIST: 30 * 60 * 1000,       // 30 minutes
-    REFRESH_BREAKING_NEWS: 60 * 1000,        // 1 minute
-    REFRESH_FOOTBALL_MATCHES: 10 * 1000,     // 10 seconds
-    REFRESH_SCORE_TICKER: 40 * 1000,         // 40 seconds
-
-    // Retry Settings
     MAX_RETRY_ATTEMPTS: 3,
-    RETRY_DELAYS: [2000, 4000, 8000],       // 2s, 4s, 8s delays
-
-    /* ==========================================
-       PLAYER SETTINGS
-       ========================================== */
+    RETRY_DELAYS: [2000, 4000, 8000],
 
     PLAYER: {
-        // Video.js Options
         CONTROLS: true,
         AUTOPLAY: true,
         MUTED: true,
@@ -74,8 +56,6 @@ const CONFIG = {
         FLUID: true,
         ASPECT_RATIO: '16:9',
         LIVEUI: true,
-        
-        // HLS.js Options
         HLS_OPTIONS: {
             enableWorker: true,
             lowLatencyMode: true,
@@ -109,191 +89,86 @@ const CONFIG = {
             manifestLoadingTimeOut: 10000,
             levelLoadingTimeOut: 10000
         },
-
-        // Supported stream types
         SUPPORTED_EXTENSIONS: ['m3u8', 'mp4', 'ts', 'mpd', 'webm', 'ogg'],
-        
-        // Watermark
         WATERMARK_TEXT: 'XBZ Live TV',
         WATERMARK_OPACITY: 0.15,
     },
 
-    /* ==========================================
-       UI SETTINGS
-       ========================================== */
-
     UI: {
-        // Grid columns
         CHANNELS_GRID_DESKTOP: 4,
         CHANNELS_GRID_TABLET: 2,
         CHANNELS_GRID_MOBILE: 1,
-
-        // Toast durations (ms)
         TOAST_DURATION_SUCCESS: 3000,
         TOAST_DURATION_ERROR: 5000,
         TOAST_DURATION_INFO: 4000,
         TOAST_DURATION_WARNING: 4500,
-        TOAST_DURATION_LOADING: 0, // Persistent until dismissed
-
-        // Search debounce (ms)
+        TOAST_DURATION_LOADING: 0,
         SEARCH_DEBOUNCE: 300,
-
-        // Scroll throttle (ms)
         SCROLL_THROTTLE: 100,
-
-        // Intersection Observer threshold
         INTERSECTION_THRESHOLD: 0.1,
-
-        // Sidebar
         SIDEBAR_WIDTH: 280,
         SIDEBAR_BREAKPOINT: 992,
-
-        // Max quick channels shown
         MAX_QUICK_CHANNELS: 8,
-
-        // Infinite marquee items duplication
         MARQUEE_DUPLICATE_COUNT: 3,
     },
 
-    /* ==========================================
-       CHANNEL DEFAULTS
-       ========================================== */
-
     CHANNEL: {
-        // Default logo fallback emojis per category
         CATEGORY_EMOJIS: {
-            'sports': '⚽',
-            'sport': '⚽',
-            'football': '⚽',
-            'cricket': '🏏',
-            'news': '📰',
-            'entertainment': '🎬',
-            'entertainment': '🎬',
-            'music': '🎵',
-            'movies': '🎬',
-            'kids': '🧒',
-            'religious': '🕌',
-            'education': '📚',
-            'documentary': '📺',
-            'general': '📡',
-            'default': '📺'
+            'sports': '⚽', 'sport': '⚽', 'football': '⚽', 'cricket': '🏏',
+            'news': '📰', 'entertainment': '🎬', 'music': '🎵', 'movies': '🎬',
+            'kids': '🧒', 'religious': '🕌', 'education': '📚', 'documentary': '📺',
+            'general': '📡', 'default': '📺'
         },
-
-        // Quality detection patterns
         QUALITY_PATTERNS: {
             '4K': /\b(4k|uhd|2160p|ultra\s*hd)\b/i,
             'HD': /\b(hd|720p|1080p|high\s*def|fhd)\b/i,
             'SD': /\b(sd|480p|576p|standard)\b/i,
             'LOW': /\b(360p|240p|low)\b/i
         },
-
-        // Status detection
         STATUS_PATTERNS: {
             'LIVE': /\b(live|24\/7|24x7)\b/i,
             'ONLINE': /\b(online|active|working)\b/i
         },
-
-        // Ignored categories (not shown in filter)
         IGNORED_CATEGORIES: ['undefined', 'other', 'unknown'],
     },
 
-    /* ==========================================
-       FOOTBALL API SETTINGS
-       ========================================== */
-
     FOOTBALL: {
-        // Competitions to fetch
-        COMPETITIONS: [
-            'PL',       // Premier League
-            'CL',       // Champions League
-            'BL1',      // Bundesliga
-            'SA',       // Serie A
-            'PD',       // La Liga
-            'FL1',      // Ligue 1
-            'ELC',      // Championship
-            'EC',       // European Championship
-            'WC',       // World Cup
-            'PPL',      // Primeira Liga
-            'DED',      // Eredivisie
-            'BSA',      // Brasileirão
-        ],
-
-        // Status filters
+        COMPETITIONS: ['PL', 'CL', 'BL1', 'SA', 'PD', 'FL1', 'ELC', 'EC', 'WC', 'PPL', 'DED', 'BSA'],
         STATUSES: ['LIVE', 'IN_PLAY', 'PAUSED', 'FINISHED', 'SCHEDULED', 'TIMED', 'POSTPONED', 'CANCELLED', 'SUSPENDED'],
-
-        // Match to channel mapping keywords
         CHANNEL_MATCH_KEYWORDS: [
             'sports', 'sport', 'football', 'soccer', 'premier', 'league',
             'champions', 'laliga', 'serie a', 'bundesliga', 'ligue 1',
             'espn', 'sky sports', 'bt sport', 'beIN', 'super sport',
             'star sports', 'sony', 'dazn', 'match', 'live'
         ],
-
-        // League emojis
         LEAGUE_EMOJIS: {
-            'Premier League': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-            'Champions League': '⭐',
-            'Bundesliga': '🇩🇪',
-            'Serie A': '🇮🇹',
-            'La Liga': '🇪🇸',
-            'Ligue 1': '🇫🇷',
-            'Championship': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-            'European Championship': '🏆',
-            'World Cup': '🌍',
-            'Primeira Liga': '🇵🇹',
-            'Eredivisie': '🇳🇱',
-            'Brasileirão': '🇧🇷',
+            'Premier League': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Champions League': '⭐', 'Bundesliga': '🇩🇪',
+            'Serie A': '🇮🇹', 'La Liga': '🇪🇸', 'Ligue 1': '🇫🇷',
+            'Championship': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'European Championship': '🏆', 'World Cup': '🌍',
+            'Primeira Liga': '🇵🇹', 'Eredivisie': '🇳🇱', 'Brasileirão': '🇧🇷',
             'default': '⚽'
         },
-
-        // Days to fetch
         DAYS_AHEAD: 3,
         DAYS_BEHIND: 1,
     },
 
-    /* ==========================================
-       PWA SETTINGS
-       ========================================== */
-
     PWA: {
         CACHE_NAME: 'xbz-prime-tv-v2',
         CACHE_URLS: [
-            '/',
-            '/index.html',
-            '/manifest.json',
-            '/assets/logo.svg',
-            '/assets/favicon.png',
-            '/assets/placeholder.webp',
-            '/css/variables.css',
-            '/css/reset.css',
-            '/css/layout.css',
-            '/css/components.css',
-            '/css/animations.css',
-            '/css/responsive.css',
-            '/js/config.js',
-            '/js/state.js',
-            '/js/utils.js',
-            '/js/api/github.js',
-            '/js/api/football.js',
-            '/js/api/breaking.js',
+            '/', '/index.html', '/manifest.json',
+            '/assets/logo.svg', '/assets/favicon.png', '/assets/placeholder.webp',
+            '/css/variables.css', '/css/reset.css', '/css/layout.css',
+            '/css/components.css', '/css/animations.css', '/css/responsive.css',
+            '/js/config.js', '/js/state.js', '/js/utils.js',
+            '/js/api/github.js', '/js/api/football.js', '/js/api/breaking.js',
             '/js/player/player.js',
-            '/js/ui/theme.js',
-            '/js/ui/toast.js',
-            '/js/ui/header.js',
-            '/js/ui/sidebar.js',
-            '/js/ui/ticker.js',
-            '/js/ui/matches.js',
-            '/js/ui/channels.js',
-            '/js/ui/modal.js',
-            '/js/app.js'
+            '/js/ui/theme.js', '/js/ui/toast.js', '/js/ui/header.js',
+            '/js/ui/sidebar.js', '/js/ui/ticker.js', '/js/ui/matches.js',
+            '/js/ui/channels.js', '/js/ui/modal.js', '/js/app.js'
         ],
         OFFLINE_PAGE: '/index.html',
-        INSTALL_PROMPT_DELAY: 30000, // 30 seconds
+        INSTALL_PROMPT_DELAY: 30000,
     },
-
-    /* ==========================================
-       STORAGE KEYS
-       ========================================== */
 
     STORAGE_KEYS: {
         THEME: 'xbz_theme',
@@ -310,52 +185,22 @@ const CONFIG = {
         INSTALL_PROMPT_SHOWN: 'xbz_install_prompt_shown',
     },
 
-    /* ==========================================
-       KEYBOARD SHORTCUTS
-       ========================================== */
-
     KEYBOARD_SHORTCUTS: {
-        'ctrl+r': 'refreshPlaylist',
-        'ctrl+f': 'focusSearch',
-        'ctrl+/': 'toggleShortcuts',
-        'escape': 'closeAll',
-        'f': 'toggleFullscreen',
-        'm': 'toggleMute',
-        'p': 'togglePiP',
-        'space': 'togglePlayPause',
-        'arrowleft': 'seekBackward',
-        'arrowright': 'seekForward',
-        'arrowup': 'volumeUp',
-        'arrowdown': 'volumeDown',
+        'ctrl+r': 'refreshPlaylist', 'ctrl+f': 'focusSearch',
+        'escape': 'closeAll', 'f': 'toggleFullscreen', 'm': 'toggleMute',
+        'p': 'togglePiP', 'space': 'togglePlayPause',
+        'arrowleft': 'seekBackward', 'arrowright': 'seekForward',
+        'arrowup': 'volumeUp', 'arrowdown': 'volumeDown',
     },
 
-    /* ==========================================
-       DEBUG SETTINGS
-       ========================================== */
-
     DEBUG: {
-        ENABLED: false,
-        LOG_LEVEL: 'info', // 'debug', 'info', 'warn', 'error'
+        ENABLED: true,
+        LOG_LEVEL: 'debug',
         LOG_PREFIX: '[XBZ]',
         SHOW_PERFORMANCE_MARKS: false,
     },
 
-    /* ==========================================
-       BREAKPOINTS (mirroring CSS)
-       ========================================== */
-
-    BREAKPOINTS: {
-        XS: 375,
-        SM: 576,
-        MD: 768,
-        LG: 992,
-        XL: 1200,
-        XXL: 1400,
-    },
-
-    /* ==========================================
-       MIME TYPES
-       ========================================== */
+    BREAKPOINTS: { XS: 375, SM: 576, MD: 768, LG: 992, XL: 1200, XXL: 1400 },
 
     MIME_TYPES: {
         M3U: ['application/x-mpegurl', 'application/vnd.apple.mpegurl', 'audio/mpegurl', 'audio/x-mpegurl'],
@@ -366,7 +211,10 @@ const CONFIG = {
     },
 };
 
-// Freeze the config to prevent accidental modification
+if (CONFIG.IS_NETLIFY || (!CONFIG.IS_LOCAL && window.location.protocol === 'https:')) {
+    CONFIG.CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+}
+
 Object.freeze(CONFIG);
 Object.freeze(CONFIG.PLAYER);
 Object.freeze(CONFIG.PLAYER.HLS_OPTIONS);
@@ -380,7 +228,6 @@ Object.freeze(CONFIG.DEBUG);
 Object.freeze(CONFIG.BREAKPOINTS);
 Object.freeze(CONFIG.MIME_TYPES);
 
-// Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CONFIG;
 }
