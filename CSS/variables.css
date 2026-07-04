@@ -1,0 +1,432 @@
+/*=============================================
+  ⚽ XBZ Prime TV - CSS Custom Properties
+  Design System Variables
+  =============================================*/
+
+:root {
+    /* ==========================================
+       COLOR SYSTEM
+       ========================================== */
+
+    /* Background Colors */
+    --color-bg-primary: #0a0e27;
+    --color-bg-secondary: #111532;
+    --color-bg-tertiary: #1a1f3a;
+    --color-bg-quaternary: #232a4a;
+    --color-bg-hover: #2a3155;
+    --color-bg-active: #323a60;
+
+    /* Surface Colors */
+    --color-surface: #1a1f3a;
+    --color-surface-elevated: #232a4a;
+    --color-surface-overlay: rgba(10, 14, 39, 0.95);
+    --color-surface-glass: rgba(26, 31, 58, 0.85);
+    --color-surface-glass-light: rgba(26, 31, 58, 0.6);
+
+    /* Brand Colors */
+    --color-brand-primary: #e63946;
+    --color-brand-primary-hover: #c62d3a;
+    --color-brand-primary-light: #ff4d5a;
+    --color-brand-primary-dark: #b52633;
+    --color-brand-primary-glow: rgba(230, 57, 70, 0.4);
+
+    /* Accent Colors */
+    --color-accent: #00b4d8;
+    --color-accent-hover: #0096b4;
+    --color-accent-light: #33c9e3;
+    --color-accent-dark: #00809e;
+    --color-accent-glow: rgba(0, 180, 216, 0.4);
+
+    /* Success Colors */
+    --color-success: #2ecc71;
+    --color-success-hover: #27ae60;
+    --color-success-light: #58d68d;
+    --color-success-dark: #1e8449;
+    --color-success-glow: rgba(46, 204, 113, 0.4);
+
+    /* Warning Colors */
+    --color-warning: #f39c12;
+    --color-warning-hover: #d68910;
+    --color-warning-light: #f5b041;
+    --color-warning-dark: #b9770e;
+    --color-warning-glow: rgba(243, 156, 18, 0.4);
+
+    /* Error Colors */
+    --color-error: #e74c3c;
+    --color-error-hover: #c0392b;
+    --color-error-light: #ec7063;
+    --color-error-dark: #a93226;
+    --color-error-glow: rgba(231, 76, 60, 0.4);
+
+    /* Info Colors */
+    --color-info: #3498db;
+    --color-info-hover: #2980b9;
+    --color-info-light: #5dade2;
+    --color-info-dark: #1f6fa5;
+    --color-info-glow: rgba(52, 152, 219, 0.4);
+
+    /* Live Colors */
+    --color-live: #e63946;
+    --color-live-pulse: #ff0000;
+    --color-live-badge-bg: rgba(230, 57, 70, 0.15);
+    --color-live-dot: #ff3333;
+
+    /* Online/Offline Colors */
+    --color-online: #2ecc71;
+    --color-offline: #95a5a6;
+    --color-offline-dim: #555;
+
+    /* Text Colors */
+    --color-text-primary: #f0f0f5;
+    --color-text-secondary: #b0b5cc;
+    --color-text-tertiary: #8086a0;
+    --color-text-muted: #5a6080;
+    --color-text-inverse: #0a0e27;
+    --color-text-link: #00b4d8;
+    --color-text-link-hover: #33c9e3;
+
+    /* Border Colors */
+    --color-border: #2a3155;
+    --color-border-light: #3a4270;
+    --color-border-lighter: #4a5280;
+    --color-border-focus: #e63946;
+    --color-border-active: #00b4d8;
+
+    /* Gradient Colors */
+    --gradient-primary: linear-gradient(135deg, #e63946, #ff6b6b);
+    --gradient-accent: linear-gradient(135deg, #00b4d8, #00d4aa);
+    --gradient-dark: linear-gradient(135deg, #0a0e27, #1a1f3a);
+    --gradient-glass: linear-gradient(135deg, rgba(26, 31, 58, 0.9), rgba(35, 42, 74, 0.8));
+    --gradient-hero: linear-gradient(135deg, #e63946, #1a1f3a, #00b4d8);
+    --gradient-ticker-fade-left: linear-gradient(to right, var(--color-bg-primary) 0%, transparent 100%);
+    --gradient-ticker-fade-right: linear-gradient(to left, var(--color-bg-primary) 0%, transparent 100%);
+    --gradient-skeleton: linear-gradient(90deg, var(--color-bg-tertiary) 25%, var(--color-bg-quaternary) 50%, var(--color-bg-tertiary) 75%);
+
+    /* Overlay Colors */
+    --color-overlay: rgba(0, 0, 0, 0.7);
+    --color-overlay-light: rgba(0, 0, 0, 0.5);
+    --color-overlay-dark: rgba(0, 0, 0, 0.85);
+
+    /* ==========================================
+       TYPOGRAPHY SYSTEM
+       ========================================== */
+
+    /* Font Families */
+    --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+
+    /* Font Sizes */
+    --text-xs: 0.625rem;    /* 10px */
+    --text-sm: 0.75rem;     /* 12px */
+    --text-base: 0.875rem;  /* 14px */
+    --text-md: 1rem;        /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 1.875rem;   /* 30px */
+    --text-4xl: 2.25rem;    /* 36px */
+    --text-5xl: 3rem;       /* 48px */
+
+    /* Font Weights */
+    --weight-light: 300;
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --weight-extrabold: 800;
+
+    /* Line Heights */
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.75;
+    --leading-loose: 2;
+
+    /* Letter Spacing */
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+    --tracking-widest: 0.1em;
+
+    /* ==========================================
+       SPACING SYSTEM (4px base)
+       ========================================== */
+
+    --space-0: 0;
+    --space-1: 0.25rem;   /* 4px */
+    --space-2: 0.5rem;    /* 8px */
+    --space-3: 0.75rem;   /* 12px */
+    --space-4: 1rem;      /* 16px */
+    --space-5: 1.25rem;   /* 20px */
+    --space-6: 1.5rem;    /* 24px */
+    --space-8: 2rem;      /* 32px */
+    --space-10: 2.5rem;   /* 40px */
+    --space-12: 3rem;     /* 48px */
+    --space-16: 4rem;     /* 64px */
+    --space-20: 5rem;     /* 80px */
+    --space-24: 6rem;     /* 96px */
+
+    /* ==========================================
+       BORDER SYSTEM
+       ========================================== */
+
+    /* Border Width */
+    --border-width-thin: 1px;
+    --border-width: 2px;
+    --border-width-thick: 3px;
+    --border-width-heavy: 4px;
+
+    /* Border Radius */
+    --radius-none: 0;
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-3xl: 32px;
+    --radius-full: 9999px;
+
+    /* Border Style */
+    --border-style-solid: solid;
+    --border-style-dashed: dashed;
+    --border-style-dotted: dotted;
+
+    /* ==========================================
+       SHADOW SYSTEM (Neo-Brutalism)
+       ========================================== */
+
+    /* Neo-Brutalist Shadows */
+    --shadow-sm: 2px 2px 0 var(--color-border);
+    --shadow-md: 4px 4px 0 var(--color-border);
+    --shadow-lg: 6px 6px 0 var(--color-border);
+    --shadow-xl: 8px 8px 0 var(--color-border);
+    --shadow-2xl: 12px 12px 0 var(--color-border);
+
+    /* Colored Shadows */
+    --shadow-primary: 6px 6px 0 var(--color-brand-primary-dark);
+    --shadow-accent: 6px 6px 0 var(--color-accent-dark);
+    --shadow-success: 6px 6px 0 var(--color-success-dark);
+    --shadow-warning: 6px 6px 0 var(--color-warning-dark);
+    --shadow-error: 6px 6px 0 var(--color-error-dark);
+
+    /* Glow Shadows */
+    --glow-primary: 0 0 20px var(--color-brand-primary-glow);
+    --glow-accent: 0 0 20px var(--color-accent-glow);
+    --glow-success: 0 0 20px var(--color-success-glow);
+    --glow-warning: 0 0 20px var(--color-warning-glow);
+    --glow-error: 0 0 20px var(--color-error-glow);
+
+    /* Card Shadows */
+    --shadow-card: 6px 6px 0 var(--color-border-light);
+    --shadow-card-hover: 8px 8px 0 var(--color-brand-primary);
+
+    /* ==========================================
+       TRANSITION SYSTEM
+       ========================================== */
+
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* ==========================================
+       Z-INDEX SYSTEM
+       ========================================== */
+
+    --z-base: 0;
+    --z-above: 1;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-header: 300;
+    --z-sidebar-overlay: 350;
+    --z-sidebar: 400;
+    --z-modal-backdrop: 500;
+    --z-modal: 600;
+    --z-toast: 700;
+    --z-tooltip: 800;
+    --z-loader: 900;
+    --z-max: 9999;
+
+    /* ==========================================
+       LAYOUT SYSTEM
+       ========================================== */
+
+    /* Container Widths */
+    --container-sm: 640px;
+    --container-md: 768px;
+    --container-lg: 1024px;
+    --container-xl: 1280px;
+    --container-2xl: 1536px;
+    --container-full: 100%;
+
+    /* Header */
+    --header-height: 60px;
+    --header-height-mobile: 56px;
+
+    /* Sidebar */
+    --sidebar-width: 280px;
+    --sidebar-width-collapsed: 0;
+
+    /* Bottom Nav */
+    --bottom-nav-height: 60px;
+
+    /* Player */
+    --player-max-height: 75vh;
+    --player-aspect-ratio: 16 / 9;
+
+    /* Grid */
+    --grid-gap: 16px;
+    --grid-columns-desktop: 4;
+    --grid-columns-tablet: 2;
+    --grid-columns-mobile: 1;
+
+    /* ==========================================
+       BREAKPOINTS
+       ========================================== */
+
+    --screen-xs: 375px;
+    --screen-sm: 576px;
+    --screen-md: 768px;
+    --screen-lg: 992px;
+    --screen-xl: 1200px;
+    --screen-2xl: 1400px;
+
+    /* ==========================================
+       ANIMATION DURATIONS
+       ========================================== */
+
+    --duration-instant: 50ms;
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+    --duration-slower: 800ms;
+    --duration-slowest: 1200ms;
+
+    /* Marquee Speeds */
+    --marquee-speed-fast: 20s;
+    --marquee-speed-normal: 30s;
+    --marquee-speed-slow: 40s;
+
+    /* ==========================================
+       SCROLLBAR
+       ========================================== */
+
+    --scrollbar-width: 6px;
+    --scrollbar-track: var(--color-bg-primary);
+    --scrollbar-thumb: var(--color-bg-quaternary);
+    --scrollbar-thumb-hover: var(--color-border-light);
+
+    /* ==========================================
+       SKELETON LOADING
+       ========================================== */
+
+    --skeleton-base: var(--color-bg-tertiary);
+    --skeleton-shine: var(--color-bg-quaternary);
+    --skeleton-radius: var(--radius-md);
+    --skeleton-duration: 1.5s;
+
+    /* ==========================================
+       PLAYER SPECIFIC
+       ========================================== */
+
+    --player-bg: #000000;
+    --player-controls-bg: rgba(0, 0, 0, 0.8);
+    --player-progress-bg: rgba(255, 255, 255, 0.2);
+    --player-progress-fill: var(--color-brand-primary);
+    --player-text: #ffffff;
+    --player-overlay-bg: rgba(10, 14, 39, 0.92);
+    --player-watermark-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ==========================================
+   LIGHT THEME (data-theme="light")
+   ========================================== */
+
+[data-theme="light"] {
+    /* Background Colors */
+    --color-bg-primary: #f5f6fa;
+    --color-bg-secondary: #ffffff;
+    --color-bg-tertiary: #eef0f5;
+    --color-bg-quaternary: #e4e6ed;
+    --color-bg-hover: #dde0e8;
+    --color-bg-active: #d1d5e0;
+
+    /* Surface Colors */
+    --color-surface: #ffffff;
+    --color-surface-elevated: #f8f9fc;
+    --color-surface-overlay: rgba(245, 246, 250, 0.95);
+    --color-surface-glass: rgba(255, 255, 255, 0.85);
+    --color-surface-glass-light: rgba(255, 255, 255, 0.6);
+
+    /* Text Colors */
+    --color-text-primary: #1a1f3a;
+    --color-text-secondary: #4a5080;
+    --color-text-tertiary: #6b72a0;
+    --color-text-muted: #8b92b5;
+    --color-text-inverse: #f0f0f5;
+
+    /* Border Colors */
+    --color-border: #d1d5e0;
+    --color-border-light: #c4c8d5;
+    --color-border-lighter: #b8bcca;
+    --color-border-focus: #e63946;
+    --color-border-active: #00b4d8;
+
+    /* Shadow Override */
+    --shadow-sm: 2px 2px 0 #c4c8d5;
+    --shadow-md: 4px 4px 0 #c4c8d5;
+    --shadow-lg: 6px 6px 0 #c4c8d5;
+    --shadow-card: 6px 6px 0 #d1d5e0;
+    --shadow-card-hover: 8px 8px 0 var(--color-brand-primary);
+
+    /* Overlay Colors */
+    --color-overlay: rgba(0, 0, 0, 0.4);
+    --color-overlay-light: rgba(0, 0, 0, 0.2);
+    --color-overlay-dark: rgba(0, 0, 0, 0.7);
+
+    /* Gradient Override */
+    --gradient-dark: linear-gradient(135deg, #f5f6fa, #ffffff);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 252, 0.8));
+    --gradient-ticker-fade-left: linear-gradient(to right, var(--color-bg-primary) 0%, transparent 100%);
+    --gradient-ticker-fade-right: linear-gradient(to left, var(--color-bg-primary) 0%, transparent 100%);
+    --gradient-skeleton: linear-gradient(90deg, var(--color-bg-tertiary) 25%, var(--color-bg-quaternary) 50%, var(--color-bg-tertiary) 75%);
+
+    /* Skeleton */
+    --skeleton-base: var(--color-bg-tertiary);
+    --skeleton-shine: var(--color-bg-quaternary);
+
+    /* Scrollbar */
+    --scrollbar-track: var(--color-bg-primary);
+    --scrollbar-thumb: #c4c8d5;
+    --scrollbar-thumb-hover: #a0a5b8;
+
+    /* Player */
+    --player-overlay-bg: rgba(245, 246, 250, 0.92);
+    --player-watermark-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --transition-fast: 0ms;
+        --transition-base: 0ms;
+        --transition-slow: 0ms;
+        --transition-spring: 0ms;
+        --transition-bounce: 0ms;
+        --duration-fast: 0ms;
+        --duration-normal: 0ms;
+        --duration-slow: 0ms;
+        --duration-slower: 0ms;
+        --duration-slowest: 0ms;
+        --marquee-speed-fast: 0s;
+        --marquee-speed-normal: 0s;
+        --marquee-speed-slow: 0s;
+        --skeleton-duration: 0s;
+    }
+}
