@@ -1,0 +1,53 @@
+/* name=css/responsive.css
+   XBZ Prime TV — responsive.css
+   Purpose: focused responsive adjustments and utility helpers for small screens and tablets
+*/
+
+/* Base responsive utilities */
+@media (max-width: 1200px) {
+  .container { padding: 0 var(--space-md); }
+}
+
+@media (max-width: 900px) {
+  .header { padding: 8px 12px; }
+  .brand-text .title { font-size: 16px; }
+  .search { max-width: 220px; }
+  .player-wrapper { max-height: 56vh; }
+  .matches-grid { grid-template-columns: repeat(2, 1fr); }
+  .channels-grid { grid-template-columns: repeat(2, 1fr); }
+  .col-sidebar { position:relative; }
+  .sidebar-inner { padding:10px; }
+}
+
+@media (max-width: 600px) {
+  .header { padding: 8px 10px; }
+  .brand-text .title { font-size: 14px; }
+  .search { display:none; }
+  .breaking-wrap { display:none; }
+  .player-wrapper { max-height: 48vh; }
+  .matches-grid { grid-template-columns: 1fr; }
+  .channels-grid { grid-template-columns: 1fr; }
+  .channel-logo { width:56px; height:36px; }
+  .channel-name { font-size:14px; }
+  .bottom-nav { display:flex; justify-content:space-between; }
+  .bottom-nav .bn-item { flex:1; }
+  .stream-panel { margin:8px; }
+}
+
+/* Touch-target helpers */
+@media (pointer: coarse) {
+  .btn, .icon-btn { padding: 12px; }
+  .channel-card { padding: 12px; }
+}
+
+/* Orientation tweaks */
+@media (orientation: landscape) and (max-height: 500px) {
+  .player-wrapper { max-height: 70vh; }
+}
+
+/* Print styles: hide interactive UI */
+@media print {
+  body * { visibility: hidden; }
+  #main, #main * { visibility: visible; }
+  #main { position: absolute; left: 0; top: 0; }
+}
