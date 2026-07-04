@@ -1,0 +1,136 @@
+/*=============================================
+  XBZ Prime TV - CSS Variables
+  Color Scheme, Spacing, Typography
+  =============================================*/
+
+:root {
+    /* Colors - Primary */
+    --primary-color: #ff0055;
+    --primary-dark: #cc0044;
+    --primary-light: #ff3366;
+
+    /* Colors - Secondary */
+    --secondary-color: #00d4ff;
+    --secondary-dark: #0099cc;
+    --secondary-light: #33e5ff;
+
+    /* Colors - Backgrounds */
+    --bg-primary: #0a0e27;
+    --bg-secondary: #141829;
+    --bg-tertiary: #1a1f36;
+    --bg-hover: #252d48;
+    --bg-active: #2d3652;
+
+    /* Colors - Light Mode */
+    --bg-primary-light: #f5f5f7;
+    --bg-secondary-light: #ffffff;
+    --bg-tertiary-light: #f0f0f5;
+    --bg-hover-light: #e8e8ed;
+    --bg-active-light: #d9d9e1;
+
+    /* Text Colors */
+    --text-primary: #f0f0f5;
+    --text-secondary: #b0b0b8;
+    --text-tertiary: #808088;
+    --text-disabled: #606068;
+
+    /* Text Colors - Light Mode */
+    --text-primary-light: #0a0e27;
+    --text-secondary-light: #505058;
+    --text-tertiary-light: #808088;
+    --text-disabled-light: #b0b0b8;
+
+    /* Border Colors */
+    --border-color: #2d3652;
+    --border-color-light: #d9d9e1;
+    --border-color-subtle: #1a1f36;
+
+    /* Status Colors */
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+    --shadow-neon: 0 0 20px rgba(255, 0, 85, 0.3), 0 0 40px rgba(0, 212, 255, 0.2);
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    /* Typography */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-family-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Line Height */
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-normal: 250ms ease-in-out;
+    --transition-slow: 350ms ease-in-out;
+
+    /* Breakpoints */
+    --bp-xs: 375px;
+    --bp-sm: 576px;
+    --bp-md: 768px;
+    --bp-lg: 992px;
+    --bp-xl: 1200px;
+    --bp-2xl: 1400px;
+
+    /* Z-Index */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-modal: 1000;
+    --z-tooltip: 1100;
+    --z-notification: 1200;
+}
+
+/* Light Mode Variables */
+[data-theme="light"] {
+    --bg-primary: var(--bg-primary-light);
+    --bg-secondary: var(--bg-secondary-light);
+    --bg-tertiary: var(--bg-tertiary-light);
+    --bg-hover: var(--bg-hover-light);
+    --bg-active: var(--bg-active-light);
+
+    --text-primary: var(--text-primary-light);
+    --text-secondary: var(--text-secondary-light);
+    --text-tertiary: var(--text-tertiary-light);
+    --text-disabled: var(--text-disabled-light);
+
+    --border-color: var(--border-color-light);
+}

@@ -1,0 +1,129 @@
+/*=============================================
+  XBZ Prime TV - Responsive Styles
+  Mobile, Tablet, Desktop Breakpoints
+  =============================================*/
+
+/* Mobile First - Base Styles (Mobile) */
+
+@media (max-width: 576px) {
+    /* Typography */
+    h1 { font-size: var(--font-size-2xl); }
+    h2 { font-size: var(--font-size-xl); }
+    h3 { font-size: var(--font-size-lg); }
+
+    /* Spacing */
+    section { padding: var(--space-lg) 0; }
+    .container { padding: 0 var(--space-sm); }
+
+    /* Grid */
+    .grid { gap: var(--space-sm); }
+
+    /* Buttons */
+    .btn { padding: var(--space-md); }
+    .btn-lg { padding: var(--space-md) var(--space-lg); }
+}
+
+/* Tablet */
+@media (min-width: 577px) and (max-width: 991px) {
+    /* Grid */
+    .grid-auto {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    /* Modal */
+    .modal-content {
+        max-width: 600px;
+    }
+}
+
+/* Large screens and up (Desktop) */
+@media (min-width: 992px) {
+    /* Containers */
+    .container { padding: 0 var(--space-lg); }
+
+    /* Grid */
+    .grid-auto {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+
+    /* Modal */
+    .modal-content {
+        max-width: 600px;
+    }
+}
+
+/* Extra Large */
+@media (min-width: 1200px) {
+    /* Grid */
+    .grid-auto {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+}
+
+/* Ultra Large */
+@media (min-width: 1400px) {
+    /* Container max width */
+    .container {
+        max-width: 1400px;
+    }
+
+    /* Grid */
+    .grid-auto {
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    }
+}
+
+/* High DPI Devices */
+@media (min-device-pixel-ratio: 2) {
+    /* Border width adjustments for high DPI */
+    .btn,
+    .card,
+    .modal-content {
+        border-width: 1px;
+    }
+}
+
+/* Landscape Mode */
+@media (max-height: 600px) and (orientation: landscape) {
+    section { padding: var(--space-md) 0; }
+    .btn { padding: var(--space-sm) var(--space-md); }
+}
+
+/* Touch Devices */
+@media (hover: none) and (pointer: coarse) {
+    .btn:hover {
+        transform: none;
+    }
+
+    .card:hover {
+        transform: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background-color: white;
+        color: black;
+    }
+
+    .no-print,
+    .modal,
+    .btn {
+        display: none !important;
+    }
+}
+
+/* Dark mode for system preference */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+    }
+}
+
+/* Light mode for system preference */
+@media (prefers-color-scheme: light) {
+    :root {
+        color-scheme: light;
+    }
+}
