@@ -1,5 +1,5 @@
 /*=============================================
-  ⚽ XBZ Prime TV - Configuration
+  XBZ Prime TV - Configuration
   App Constants, Settings & API Config
   =============================================*/
 
@@ -114,10 +114,20 @@ const CONFIG = {
 
     CHANNEL: {
         CATEGORY_EMOJIS: {
-            'sports': '⚽', 'sport': '⚽', 'football': '⚽', 'cricket': '🏏',
-            'news': '📰', 'entertainment': '🎬', 'music': '🎵', 'movies': '🎬',
-            'kids': '🧒', 'religious': '🕌', 'education': '📚', 'documentary': '📺',
-            'general': '📡', 'default': '📺'
+            'sports': 'S',
+            'sport': 'S',
+            'football': 'F',
+            'cricket': 'C',
+            'news': 'N',
+            'entertainment': 'E',
+            'music': 'M',
+            'movies': 'MV',
+            'kids': 'K',
+            'religious': 'R',
+            'education': 'ED',
+            'documentary': 'DOC',
+            'general': 'GEN',
+            'default': 'TV'
         },
         QUALITY_PATTERNS: {
             '4K': /\b(4k|uhd|2160p|ultra\s*hd)\b/i,
@@ -142,11 +152,19 @@ const CONFIG = {
             'star sports', 'sony', 'dazn', 'match', 'live'
         ],
         LEAGUE_EMOJIS: {
-            'Premier League': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Champions League': '⭐', 'Bundesliga': '🇩🇪',
-            'Serie A': '🇮🇹', 'La Liga': '🇪🇸', 'Ligue 1': '🇫🇷',
-            'Championship': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'European Championship': '🏆', 'World Cup': '🌍',
-            'Primeira Liga': '🇵🇹', 'Eredivisie': '🇳🇱', 'Brasileirão': '🇧🇷',
-            'default': '⚽'
+            'Premier League': 'ENG',
+            'Champions League': 'UCL',
+            'Bundesliga': 'GER',
+            'Serie A': 'ITA',
+            'La Liga': 'ESP',
+            'Ligue 1': 'FRA',
+            'Championship': 'CHA',
+            'European Championship': 'EUR',
+            'World Cup': 'WC',
+            'Primeira Liga': 'POR',
+            'Eredivisie': 'NED',
+            'Brasileirao': 'BRA',
+            'default': 'INT'
         },
         DAYS_AHEAD: 3,
         DAYS_BEHIND: 1,
@@ -186,11 +204,17 @@ const CONFIG = {
     },
 
     KEYBOARD_SHORTCUTS: {
-        'ctrl+r': 'refreshPlaylist', 'ctrl+f': 'focusSearch',
-        'escape': 'closeAll', 'f': 'toggleFullscreen', 'm': 'toggleMute',
-        'p': 'togglePiP', 'space': 'togglePlayPause',
-        'arrowleft': 'seekBackward', 'arrowright': 'seekForward',
-        'arrowup': 'volumeUp', 'arrowdown': 'volumeDown',
+        'ctrl+r': 'refreshPlaylist',
+        'ctrl+f': 'focusSearch',
+        'escape': 'closeAll',
+        'f': 'toggleFullscreen',
+        'm': 'toggleMute',
+        'p': 'togglePiP',
+        'space': 'togglePlayPause',
+        'arrowleft': 'seekBackward',
+        'arrowright': 'seekForward',
+        'arrowup': 'volumeUp',
+        'arrowdown': 'volumeDown',
     },
 
     DEBUG: {
@@ -200,7 +224,14 @@ const CONFIG = {
         SHOW_PERFORMANCE_MARKS: false,
     },
 
-    BREAKPOINTS: { XS: 375, SM: 576, MD: 768, LG: 992, XL: 1200, XXL: 1400 },
+    BREAKPOINTS: {
+        XS: 375,
+        SM: 576,
+        MD: 768,
+        LG: 992,
+        XL: 1200,
+        XXL: 1400,
+    },
 
     MIME_TYPES: {
         M3U: ['application/x-mpegurl', 'application/vnd.apple.mpegurl', 'audio/mpegurl', 'audio/x-mpegurl'],
@@ -211,10 +242,16 @@ const CONFIG = {
     },
 };
 
+// Set CORS proxy for production
 if (CONFIG.IS_NETLIFY || (!CONFIG.IS_LOCAL && window.location.protocol === 'https:')) {
     CONFIG.CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+    console.log('[CONFIG] Production mode - Using CORS proxy');
+} else {
+    CONFIG.CORS_PROXY = '';
+    console.log('[CONFIG] Local mode - Direct fetch');
 }
 
+// Freeze all config objects
 Object.freeze(CONFIG);
 Object.freeze(CONFIG.PLAYER);
 Object.freeze(CONFIG.PLAYER.HLS_OPTIONS);
