@@ -5,7 +5,7 @@
 
 'use strict';
 
-const CONFIG = {
+var CONFIG = {
     APP_NAME: 'XBZ Prime TV',
     APP_VERSION: '2.0.0',
     APP_AUTHOR: 'Naim Xbz',
@@ -62,7 +62,7 @@ const CONFIG = {
             backBufferLength: 90,
             maxBufferLength: 30,
             maxMaxBufferLength: 600,
-            maxBufferSize: 60 * 1000 * 1000,
+            maxBufferSize: 60000000,
             maxBufferHole: 0.5,
             highBufferWatchdogPeriod: 2,
             nudgeOffset: 0.1,
@@ -91,7 +91,7 @@ const CONFIG = {
         },
         SUPPORTED_EXTENSIONS: ['m3u8', 'mp4', 'ts', 'mpd', 'webm', 'ogg'],
         WATERMARK_TEXT: 'XBZ Live TV',
-        WATERMARK_OPACITY: 0.15,
+        WATERMARK_OPACITY: 0.15
     },
 
     UI: {
@@ -109,37 +109,37 @@ const CONFIG = {
         SIDEBAR_WIDTH: 280,
         SIDEBAR_BREAKPOINT: 992,
         MAX_QUICK_CHANNELS: 8,
-        MARQUEE_DUPLICATE_COUNT: 3,
+        MARQUEE_DUPLICATE_COUNT: 3
     },
 
     CHANNEL: {
         CATEGORY_EMOJIS: {
-            'sports': 'S',
-            'sport': 'S',
-            'football': 'F',
-            'cricket': 'C',
-            'news': 'N',
-            'entertainment': 'E',
-            'music': 'M',
-            'movies': 'MV',
-            'kids': 'K',
-            'religious': 'R',
-            'education': 'ED',
+            'sports': 'SPORTS',
+            'sport': 'SPORT',
+            'football': 'FOOTBALL',
+            'cricket': 'CRICKET',
+            'news': 'NEWS',
+            'entertainment': 'ENT',
+            'music': 'MUSIC',
+            'movies': 'MOVIES',
+            'kids': 'KIDS',
+            'religious': 'REL',
+            'education': 'EDU',
             'documentary': 'DOC',
             'general': 'GEN',
             'default': 'TV'
         },
         QUALITY_PATTERNS: {
-            '4K': /\b(4k|uhd|2160p|ultra\s*hd)\b/i,
-            'HD': /\b(hd|720p|1080p|high\s*def|fhd)\b/i,
-            'SD': /\b(sd|480p|576p|standard)\b/i,
-            'LOW': /\b(360p|240p|low)\b/i
+            '4K': '\\b(4k|uhd|2160p|ultra hd)\\b',
+            'HD': '\\b(hd|720p|1080p|high def|fhd)\\b',
+            'SD': '\\b(sd|480p|576p|standard)\\b',
+            'LOW': '\\b(360p|240p|low)\\b'
         },
         STATUS_PATTERNS: {
-            'LIVE': /\b(live|24\/7|24x7)\b/i,
-            'ONLINE': /\b(online|active|working)\b/i
+            'LIVE': '\\b(live|24/7|24x7)\\b',
+            'ONLINE': '\\b(online|active|working)\\b'
         },
-        IGNORED_CATEGORIES: ['undefined', 'other', 'unknown'],
+        IGNORED_CATEGORIES: ['undefined', 'other', 'unknown']
     },
 
     FOOTBALL: {
@@ -167,25 +167,43 @@ const CONFIG = {
             'default': 'INT'
         },
         DAYS_AHEAD: 3,
-        DAYS_BEHIND: 1,
+        DAYS_BEHIND: 1
     },
 
     PWA: {
         CACHE_NAME: 'xbz-prime-tv-v2',
         CACHE_URLS: [
-            '/', '/index.html', '/manifest.json',
-            '/assets/logo.svg', '/assets/favicon.png', '/assets/placeholder.webp',
-            '/css/variables.css', '/css/reset.css', '/css/layout.css',
-            '/css/components.css', '/css/animations.css', '/css/responsive.css',
-            '/js/config.js', '/js/state.js', '/js/utils.js',
-            '/js/api/github.js', '/js/api/football.js', '/js/api/breaking.js',
+            '/',
+            '/index.html',
+            '/manifest.json',
+            '/assets/logo.svg',
+            '/assets/favicon.png',
+            '/assets/placeholder.webp',
+            '/css/variables.css',
+            '/css/reset.css',
+            '/css/layout.css',
+            '/css/components.css',
+            '/css/animations.css',
+            '/css/responsive.css',
+            '/js/config.js',
+            '/js/state.js',
+            '/js/utils.js',
+            '/js/api/github.js',
+            '/js/api/football.js',
+            '/js/api/breaking.js',
             '/js/player/player.js',
-            '/js/ui/theme.js', '/js/ui/toast.js', '/js/ui/header.js',
-            '/js/ui/sidebar.js', '/js/ui/ticker.js', '/js/ui/matches.js',
-            '/js/ui/channels.js', '/js/ui/modal.js', '/js/app.js'
+            '/js/ui/theme.js',
+            '/js/ui/toast.js',
+            '/js/ui/header.js',
+            '/js/ui/sidebar.js',
+            '/js/ui/ticker.js',
+            '/js/ui/matches.js',
+            '/js/ui/channels.js',
+            '/js/ui/modal.js',
+            '/js/app.js'
         ],
         OFFLINE_PAGE: '/index.html',
-        INSTALL_PROMPT_DELAY: 30000,
+        INSTALL_PROMPT_DELAY: 30000
     },
 
     STORAGE_KEYS: {
@@ -200,7 +218,7 @@ const CONFIG = {
         LAST_SOURCE: 'xbz_last_source',
         FAVORITE_CHANNELS: 'xbz_favorites',
         USER_PREFERENCES: 'xbz_preferences',
-        INSTALL_PROMPT_SHOWN: 'xbz_install_prompt_shown',
+        INSTALL_PROMPT_SHOWN: 'xbz_install_prompt_shown'
     },
 
     KEYBOARD_SHORTCUTS: {
@@ -214,14 +232,14 @@ const CONFIG = {
         'arrowleft': 'seekBackward',
         'arrowright': 'seekForward',
         'arrowup': 'volumeUp',
-        'arrowdown': 'volumeDown',
+        'arrowdown': 'volumeDown'
     },
 
     DEBUG: {
         ENABLED: true,
         LOG_LEVEL: 'debug',
         LOG_PREFIX: '[XBZ]',
-        SHOW_PERFORMANCE_MARKS: false,
+        SHOW_PERFORMANCE_MARKS: false
     },
 
     BREAKPOINTS: {
@@ -230,7 +248,7 @@ const CONFIG = {
         MD: 768,
         LG: 992,
         XL: 1200,
-        XXL: 1400,
+        XXL: 1400
     },
 
     MIME_TYPES: {
@@ -238,8 +256,8 @@ const CONFIG = {
         HLS: ['application/vnd.apple.mpegurl', 'application/x-mpegurl'],
         MP4: ['video/mp4'],
         MPD: ['application/dash+xml'],
-        TS: ['video/mp2t'],
-    },
+        TS: ['video/mp2t']
+    }
 };
 
 // Set CORS proxy for production
