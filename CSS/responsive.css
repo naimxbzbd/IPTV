@@ -1,0 +1,947 @@
+/*=============================================
+  ⚽ XBZ Prime TV - Responsive Design
+  Mobile-First Media Queries
+  =============================================*/
+
+/* ==========================================
+   BASE MOBILE STYLES (Default)
+   ========================================== */
+
+/* These styles apply to all devices as baseline */
+
+.bottom-nav {
+    display: flex;
+}
+
+.sidebar {
+    width: 100%;
+    max-width: var(--sidebar-width);
+}
+
+.channels-grid {
+    grid-template-columns: repeat(var(--grid-columns-mobile), 1fr);
+}
+
+.matches-grid {
+    grid-template-columns: 1fr;
+}
+
+/* ==========================================
+   EXTRA SMALL DEVICES (320px - 374px)
+   ========================================== */
+
+@media screen and (max-width: 374px) {
+    .header-title-text {
+        font-size: var(--text-sm);
+    }
+
+    .header-logo {
+        width: 32px;
+        height: 32px;
+    }
+
+    .live-badge {
+        font-size: 9px;
+        padding: 1px 6px;
+    }
+
+    .live-badge .live-text {
+        display: none;
+    }
+
+    .header-btn {
+        width: 34px;
+        height: 34px;
+        font-size: var(--text-md);
+    }
+
+    .header-actions {
+        gap: var(--space-1);
+    }
+
+    .breaking-label {
+        font-size: 9px;
+        padding: var(--space-1) var(--space-2);
+    }
+
+    .breaking-label span {
+        display: none;
+    }
+
+    .score-label {
+        font-size: 9px;
+    }
+
+    .player-wrapper {
+        border-radius: var(--radius-md);
+        border-width: var(--border-width);
+    }
+
+    .channel-card {
+        padding: var(--space-3);
+    }
+
+    .channel-logo {
+        width: 44px;
+        height: 44px;
+    }
+
+    .channel-name {
+        font-size: var(--text-xs);
+    }
+
+    .match-card {
+        padding: var(--space-3);
+    }
+
+    .match-teams {
+        gap: var(--space-2);
+    }
+
+    .match-team-logo {
+        width: 32px;
+        height: 32px;
+    }
+
+    .match-score-full {
+        font-size: var(--text-xl);
+    }
+
+    .match-team-name {
+        font-size: 10px;
+    }
+
+    .toast-container {
+        left: var(--space-2);
+        right: var(--space-2);
+        max-width: none;
+    }
+
+    .modal-content {
+        border-radius: var(--radius-lg);
+    }
+
+    .footer {
+        padding: var(--space-4) var(--space-3);
+    }
+}
+
+/* ==========================================
+   SMALL DEVICES (375px - 575px)
+   ========================================== */
+
+@media screen and (min-width: 375px) and (max-width: 575px) {
+    .header-title-text {
+        font-size: var(--text-md);
+    }
+
+    .live-badge .live-text {
+        display: inline;
+    }
+
+    .channel-card {
+        padding: var(--space-3);
+    }
+
+    .channel-logo {
+        width: 48px;
+        height: 48px;
+    }
+
+    .match-card {
+        padding: var(--space-3);
+    }
+
+    .match-score-full {
+        font-size: var(--text-2xl);
+    }
+}
+
+/* ==========================================
+   MOBILE (max-width: 767px)
+   ========================================== */
+
+@media screen and (max-width: 767px) {
+    /* Header */
+    .header {
+        height: var(--header-height-mobile);
+    }
+
+    .header-container {
+        padding: 0 var(--space-3);
+    }
+
+    .header-actions {
+        gap: var(--space-1);
+    }
+
+    #search-toggle,
+    #refresh-btn {
+        display: flex;
+    }
+
+    /* Search Bar */
+    .search-bar {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .search-bar-inner {
+        padding: var(--space-1) var(--space-3);
+    }
+
+    /* Tickers */
+    .breaking-news {
+        height: 36px;
+    }
+
+    .score-ticker {
+        height: 32px;
+    }
+
+    .breaking-label {
+        font-size: 9px;
+        padding: 2px 8px;
+    }
+
+    .ticker-item,
+    .score-item {
+        font-size: var(--text-xs);
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: var(--space-3);
+        padding-bottom: calc(var(--bottom-nav-height) + var(--space-6));
+        gap: var(--space-4);
+    }
+
+    /* Player */
+    .player-wrapper {
+        border-radius: var(--radius-md);
+        border-width: var(--border-width);
+        aspect-ratio: 16 / 9;
+        max-height: 50vh;
+    }
+
+    .player-watermark {
+        top: var(--space-2);
+        right: var(--space-2);
+    }
+
+    .player-watermark span {
+        font-size: 9px;
+    }
+
+    .placeholder-title {
+        font-size: var(--text-lg);
+    }
+
+    .placeholder-subtitle {
+        font-size: var(--text-xs);
+    }
+
+    .football-field {
+        width: 80px;
+        height: 80px;
+    }
+
+    .football-ball {
+        width: 18px;
+        height: 18px;
+    }
+
+    .quick-channels {
+        gap: var(--space-2);
+    }
+
+    .quick-label {
+        font-size: 10px;
+    }
+
+    .quick-channel-btn {
+        font-size: var(--text-xs);
+        padding: var(--space-1) var(--space-3);
+    }
+
+    .source-info {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .source-label {
+        font-size: 10px;
+    }
+
+    .source-name {
+        font-size: var(--text-xs);
+    }
+
+    /* Channels Grid */
+    .channels-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+
+    .channel-card {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3);
+    }
+
+    .channel-card-header {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .channel-card-footer {
+        flex-shrink: 0;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: var(--space-1);
+    }
+
+    .channel-logo {
+        width: 48px;
+        height: 48px;
+    }
+
+    .channel-name {
+        font-size: var(--text-sm);
+    }
+
+    .channel-category {
+        font-size: 10px;
+    }
+
+    .channel-quality-badges {
+        gap: 2px;
+    }
+
+    /* Matches Grid */
+    .matches-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+
+    .match-card {
+        padding: var(--space-3);
+    }
+
+    .match-teams {
+        gap: var(--space-2);
+    }
+
+    .match-team-logo {
+        width: 36px;
+        height: 36px;
+    }
+
+    .match-team-name {
+        font-size: 11px;
+    }
+
+    .match-score-full {
+        font-size: var(--text-xl);
+    }
+
+    .match-score {
+        min-width: 50px;
+    }
+
+    /* Section Headers */
+    .section-title {
+        font-size: var(--text-md);
+    }
+
+    .section-header {
+        margin-bottom: var(--space-3);
+    }
+
+    /* Matches Tabs */
+    .matches-tabs {
+        gap: var(--space-1);
+        margin-bottom: var(--space-3);
+    }
+
+    .match-tab {
+        padding: var(--space-1) var(--space-3);
+        font-size: var(--text-xs);
+    }
+
+    /* Channel Controls */
+    .channel-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    .category-filter {
+        width: 100%;
+        min-width: auto;
+    }
+
+    /* Custom Stream */
+    .custom-stream-tabs {
+        flex-direction: column;
+    }
+
+    .stream-tab {
+        text-align: center;
+        justify-content: center;
+    }
+
+    .stream-input-group {
+        flex-direction: column;
+    }
+
+    .stream-input-group .btn {
+        width: 100%;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        top: var(--header-height-mobile);
+        bottom: var(--bottom-nav-height);
+        width: 85%;
+        max-width: 320px;
+    }
+
+    .sidebar-overlay {
+        top: var(--header-height-mobile);
+        bottom: var(--bottom-nav-height);
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+        display: flex;
+        height: var(--bottom-nav-height);
+    }
+
+    /* Footer */
+    .footer {
+        padding-bottom: calc(var(--bottom-nav-height) + var(--space-4));
+    }
+
+    /* Toast */
+    .toast-container {
+        top: calc(var(--header-height-mobile) + var(--space-2));
+        left: var(--space-3);
+        right: var(--space-3);
+        max-width: none;
+    }
+
+    .toast {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    /* Modal */
+    .modal-content {
+        margin: var(--space-3);
+        max-height: 70vh;
+        border-radius: var(--radius-lg);
+    }
+
+    .modal-header {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .modal-body {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    /* Error Overlay */
+    .error-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .error-actions .btn {
+        width: 100%;
+    }
+
+    /* Scroll to Top */
+    .scroll-to-top {
+        bottom: calc(var(--bottom-nav-height) + var(--space-3));
+        right: var(--space-3);
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Install Banner */
+    .install-banner {
+        bottom: calc(var(--bottom-nav-height) + var(--space-2));
+        left: var(--space-3);
+        right: var(--space-3);
+        padding: var(--space-2) var(--space-3);
+    }
+}
+
+/* ==========================================
+   TABLET (768px - 991px)
+   ========================================== */
+
+@media screen and (min-width: 768px) and (max-width: 991px) {
+    /* Header */
+    .header-container {
+        padding: 0 var(--space-5);
+    }
+
+    .header-title-text {
+        font-size: var(--text-lg);
+    }
+
+    /* Tickers */
+    .breaking-news {
+        height: 40px;
+    }
+
+    .score-ticker {
+        height: 36px;
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: var(--space-5);
+        gap: var(--space-5);
+    }
+
+    /* Bottom Nav - Hide on tablet+ */
+    .bottom-nav {
+        display: none;
+    }
+
+    /* Player */
+    .player-wrapper {
+        border-radius: var(--radius-lg);
+        max-height: 60vh;
+    }
+
+    /* Channels Grid */
+    .channels-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    .channel-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .channel-card-header {
+        flex: none;
+    }
+
+    .channel-card-footer {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Matches Grid */
+    .matches-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    /* Custom Stream */
+    .custom-stream-tabs {
+        flex-wrap: wrap;
+    }
+
+    .stream-input-group {
+        flex-direction: row;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        top: var(--header-height);
+        width: 300px;
+        bottom: 0;
+    }
+
+    .sidebar-overlay {
+        top: var(--header-height);
+        bottom: 0;
+    }
+
+    /* Modal */
+    .modal-content {
+        max-width: 480px;
+    }
+
+    /* Toast */
+    .toast-container {
+        top: calc(var(--header-height) + var(--space-4));
+        max-width: 400px;
+    }
+
+    /* Footer */
+    .footer {
+        padding-bottom: var(--space-6);
+    }
+}
+
+/* ==========================================
+   SMALL DESKTOP (992px - 1199px)
+   ========================================== */
+
+@media screen and (min-width: 992px) and (max-width: 1199px) {
+    /* Header */
+    .header-container {
+        padding: 0 var(--space-6);
+    }
+
+    .header-title-text {
+        font-size: var(--text-xl);
+    }
+
+    /* Bottom Nav - Hide */
+    .bottom-nav {
+        display: none;
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: var(--space-6);
+        gap: var(--space-6);
+    }
+
+    /* Player */
+    .player-wrapper {
+        max-height: 65vh;
+    }
+
+    /* Channels Grid */
+    .channels-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    /* Matches Grid */
+    .matches-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    /* Sidebar */
+    .sidebar {
+        position: sticky;
+        top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+        transform: translateX(0);
+        width: 260px;
+        border-right: var(--border-width-thick) solid var(--color-border);
+    }
+
+    .sidebar-overlay {
+        display: none !important;
+    }
+
+    .sidebar-close {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    /* Footer */
+    .footer {
+        padding-bottom: var(--space-6);
+    }
+}
+
+/* ==========================================
+   LARGE DESKTOP (1200px - 1399px)
+   ========================================== */
+
+@media screen and (min-width: 1200px) and (max-width: 1399px) {
+    /* Bottom Nav - Hide */
+    .bottom-nav {
+        display: none;
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: var(--space-8);
+    }
+
+    /* Player */
+    .player-wrapper {
+        max-height: 70vh;
+    }
+
+    /* Channels Grid */
+    .channels-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    /* Matches Grid */
+    .matches-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    /* Sidebar */
+    .sidebar {
+        position: sticky;
+        top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+        transform: translateX(0);
+        width: 280px;
+        border-right: var(--border-width-thick) solid var(--color-border);
+        box-shadow: none;
+    }
+
+    .sidebar-overlay {
+        display: none !important;
+    }
+
+    .sidebar-close {
+        display: none;
+    }
+
+    /* Footer */
+    .footer {
+        padding-bottom: var(--space-6);
+    }
+}
+
+/* ==========================================
+   EXTRA LARGE DESKTOP (1400px+)
+   ========================================== */
+
+@media screen and (min-width: 1400px) {
+    /* Bottom Nav - Hide */
+    .bottom-nav {
+        display: none;
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: var(--space-8) var(--space-10);
+    }
+
+    /* Player */
+    .player-wrapper {
+        max-height: 75vh;
+    }
+
+    /* Channels Grid */
+    .channels-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    /* Matches Grid */
+    .matches-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--grid-gap);
+    }
+
+    /* Sidebar - Always visible */
+    .sidebar {
+        position: sticky;
+        top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+        transform: translateX(0);
+        width: 300px;
+        border-right: var(--border-width-thick) solid var(--color-border);
+        box-shadow: none;
+    }
+
+    .sidebar-overlay {
+        display: none !important;
+    }
+
+    .sidebar-close {
+        display: none;
+    }
+
+    /* Footer */
+    .footer {
+        padding-bottom: var(--space-8);
+    }
+}
+
+/* ==========================================
+   LANDSCAPE MOBILE
+   ========================================== */
+
+@media screen and (max-width: 991px) and (orientation: landscape) {
+    .player-wrapper {
+        max-height: 70vh;
+    }
+
+    .header {
+        height: 50px;
+    }
+
+    .bottom-nav {
+        height: 50px;
+    }
+
+    .main-content {
+        padding-bottom: calc(50px + var(--space-4));
+    }
+
+    .channels-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .matches-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ==========================================
+   HIGH DPI SCREENS (Retina)
+   ========================================== */
+
+@media screen and (-webkit-min-device-pixel-ratio: 2),
+       screen and (min-resolution: 192dpi) {
+    .channel-logo img,
+    .match-team-logo {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* ==========================================
+   LARGE SCREENS (Ultrawide)
+   ========================================== */
+
+@media screen and (min-width: 1800px) {
+    .main-content {
+        max-width: 1600px;
+    }
+
+    .channels-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .matches-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .player-wrapper {
+        max-height: 70vh;
+    }
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+
+@media print {
+    .header,
+    .breaking-news,
+    .score-ticker,
+    .sidebar,
+    .sidebar-overlay,
+    .bottom-nav,
+    .player-section,
+    .custom-stream-section,
+    .toast-container,
+    .modal,
+    .scroll-to-top,
+    .install-banner {
+        display: none !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 20px !important;
+    }
+
+    .channel-card,
+    .match-card {
+        break-inside: avoid;
+        border: 1px solid #000;
+        box-shadow: none;
+    }
+
+    body {
+        background: #ffffff;
+        color: #000000;
+        font-size: 12pt;
+    }
+}
+
+/* ==========================================
+   PWA DISPLAY MODES
+   ========================================== */
+
+/* Standalone / Fullscreen PWA mode */
+@media all and (display-mode: standalone),
+       all and (display-mode: fullscreen) {
+    .header {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    .bottom-nav {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .main-content {
+        padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .toast-container {
+        top: calc(var(--header-height) + var(--space-4) + env(safe-area-inset-top, 0px));
+    }
+}
+
+/* Minimal UI mode */
+@media all and (display-mode: minimal-ui) {
+    .header {
+        padding-top: 0;
+    }
+}
+
+/* ==========================================
+   BROWSER FALLBACKS
+   ========================================== */
+
+/* Safari-specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .header {
+        position: -webkit-sticky;
+    }
+
+    .sidebar {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Firefox-specific fixes */
+@-moz-document url-prefix() {
+    .header {
+        backdrop-filter: none;
+        background: var(--color-surface);
+    }
+
+    .bottom-nav {
+        backdrop-filter: none;
+        background: var(--color-surface);
+    }
+}
+
+/* ==========================================
+   DARK MODE SPECIFIC
+   ========================================== */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        /* Dark mode already defaults, ensure consistency */
+        color-scheme: dark;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+        /* Will be overridden by theme toggle */
+    }
+}
