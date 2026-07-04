@@ -1,1031 +1,1144 @@
 /*=============================================
-  ⚽ XBZ Prime TV - Main Application
-  App Initialization, Routing & Coordination
+  XBZ Prime TV - Video Player Module
+  Video.js + HLS.js Integration
+  Improved Error Logging & Debugging
   =============================================*/
 
 'use strict';
 
-const XBZPrimeTV = {
+var PlayerModule = {
     /* ==========================================
        INITIALIZATION
        ========================================== */
 
     /**
-     * Initialize the entire application
+     * Initialize the video player
      */
-    async init() {
-        console.log('========================================');
-        console.log(`  ⚽ ${CONFIG.APP_NAME} v${CONFIG.APP_VERSION}`);
-        console.log('  Premium Sports Live Streaming');
-        console.log('========================================');
+    init: async function() {
+        console.log('[PLAYER] ========================================');
+        console.log('[PLAYER] Initializing video player...');
+        console.log('[PLAYER] Environment:', CONFIG.IS_LOCAL ? 'LOCAL' : 'PRODUCTION');
+        console.log('[PLAYER] CORS Proxy:', CONFIG.CORS_PROXY || 'None');
+        console.log('[PLAYER] HLS.js supported:', typeof Hls !== 'undefined' ? 'YES' : 'NO');
+        console.log('[PLAYER] Video.js supported:', typeof videojs !== 'undefined' ? 'YES' : 'NO');
 
         try {
-            // Record start time
-            const startTime = performance.now();
+            var videoElement = Utils.$('#main-player');
+            if (!videoElement) {
+                console.error('[PLAYER] ERROR: Video element #main-player not found in DOM');
+                throw new Error('Video element not found');
+            }
+            console.log('[PLAYER] Video element found:', videoElement.id);
 
-            // Set up online/offline detection
-            this.setupConnectivityDetection();
+            STATE.player.videoElement = videoElement;
 
-            // Initialize theme first (prevents flash)
-            ThemeManager.init();
+            await this.initVideoJS(videoElement);
+            this.setupPlayerEvents();
+            this.setupKeyboardControls();
+            this.setupVisibilityHandling();
+            this.restorePlayerState();
 
-            // Initialize toast system
-            ToastManager.init();
-
-            // Cache all DOM elements
-            this.cacheAllDOMElements();
-
-            // Initialize UI components
-            this.initUIComponents();
-
-            // Set up keyboard shortcuts
-            this.setupKeyboardShortcuts();
-
-            // Set up bottom navigation
-            this.setupBottomNavigation();
-
-            // Set up scroll to top
-            this.setupScrollToTop();
-
-            // Set up PWA install prompt
-            this.setupPWAInstall();
-
-            // Load data
-            await this.loadData();
-
-            // Set up intersection observers
-            this.setupIntersectionObservers();
-
-            // Set up custom stream panel
-            this.setupCustomStreamPanel();
-
-            // Mark as ready
-            StateManager.set('app.initialized', true);
-            StateManager.set('app.ready', true);
-
-            // Show welcome toast
-            setTimeout(() => {
-                ToastManager.showWelcome();
-            }, 1000);
-
-            // Record performance
-            const loadTime = performance.now() - startTime;
-            STATE.performance.appStartTime = startTime;
-            console.log(`[APP] Initialization complete in ${loadTime.toFixed(0)}ms`);
-            console.log('========================================');
-
-            // Dispatch ready event
-            Utils.triggerEvent(document.body, 'app:ready', { loadTime });
+            console.log('[PLAYER] Video player initialized successfully');
+            console.log('[PLAYER] ========================================');
+            return STATE.player.videoJS;
 
         } catch (error) {
-            console.error('[APP] Critical initialization error:', error);
-            StateManager.set('app.error', error.message);
-            
-            // Show error to user
-            ToastManager.error(
-                'Failed to initialize app. Please refresh the page.',
-                'Initialization Error'
-            );
-        }
-    },
-
-    /* ==========================================
-       CONNECTIVITY DETECTION
-       ========================================== */
-
-    /**
-     * Set up online/offline detection
-     */
-    setupConnectivityDetection() {
-        window.addEventListener('online', () => {
-            console.log('[APP] Network connection restored');
-            StateManager.set('app.online', true);
-            
-            // Refresh data when coming back online
-            setTimeout(() => {
-                this.refreshAllData();
-            }, 2000);
-        });
-
-        window.addEventListener('offline', () => {
-            console.log('[APP] Network connection lost');
-            StateManager.set('app.online', false);
-        });
-
-        // Initial check
-        StateManager.set('app.online', navigator.onLine);
-    },
-
-    /* ==========================================
-       DOM CACHE
-       ========================================== */
-
-    /**
-     * Cache all frequently accessed DOM elements
-     */
-    cacheAllDOMElements() {
-        STATE.dom.elements.app = Utils.$('#app');
-        STATE.dom.elements.mainContent = Utils.$('#main-content');
-        STATE.dom.elements.playerSection = Utils.$('#player-section');
-        STATE.dom.elements.matchesSection = Utils.$('#matches-section');
-        STATE.dom.elements.channelsSection = Utils.$('#channels-section');
-        STATE.dom.elements.customStreamSection = Utils.$('#custom-stream-panel');
-        STATE.dom.elements.bottomNav = Utils.$('#bottom-nav');
-        STATE.dom.elements.scrollToTop = Utils.$('.scroll-to-top');
-        STATE.dom.elements.playerLoading = Utils.$('#player-loading');
-        STATE.dom.elements.playerError = Utils.$('#player-error');
-        STATE.dom.elements.playerPlaceholder = Utils.$('#player-placeholder');
-        STATE.dom.elements.playerRetry = Utils.$('#player-retry');
-        STATE.dom.elements.playerNextSource = Utils.$('#player-next-source');
-        STATE.dom.elements.playerStop = Utils.$('#player-stop');
-        STATE.dom.elements.playerCancel = Utils.$('#player-cancel');
-    },
-
-    /* ==========================================
-       UI COMPONENTS INITIALIZATION
-       ========================================== */
-
-    /**
-     * Initialize all UI components
-     */
-    initUIComponents() {
-        console.log('[APP] Initializing UI components...');
-
-        // Header (includes search, refresh, theme toggle)
-        HeaderComponent.init();
-
-        // Sidebar (category navigation)
-        SidebarComponent.init();
-
-        // Tickers (breaking news + live scores)
-        TickerComponent.init();
-
-        // Matches section
-        MatchesComponent.init();
-
-        // Channels grid
-        ChannelsComponent.init();
-
-        // Modal system
-        ModalManager.init();
-
-        // Player
-        PlayerModule.init().catch(error => {
-            console.error('[APP] Player initialization error:', error);
-        });
-
-        console.log('[APP] All UI components initialized');
-    },
-
-    /* ==========================================
-       DATA LOADING
-       ========================================== */
-
-    /**
-     * Load all application data
-     */
-    async loadData() {
-        console.log('[APP] Loading application data...');
-
-        try {
-            // Load in parallel where possible
-            const results = await Promise.allSettled([
-                this.loadPlaylist(),
-                this.loadFootballMatches(),
-                this.loadBreakingNews(),
-            ]);
-
-            // Check results
-            results.forEach((result, index) => {
-                const labels = ['Playlist', 'Football Matches', 'Breaking News'];
-                if (result.status === 'fulfilled') {
-                    console.log(`[APP] ${labels[index]} loaded successfully`);
-                } else {
-                    console.error(`[APP] ${labels[index]} failed:`, result.reason);
-                }
-            });
-
-            console.log('[APP] Data loading complete');
-        } catch (error) {
-            console.error('[APP] Error loading data:', error);
-        }
-    },
-
-    /**
-     * Load playlist data
-     */
-    async loadPlaylist() {
-        try {
-            await GitHubAPI.init();
-            return STATE.playlist.channels;
-        } catch (error) {
-            console.error('[APP] Playlist load error:', error);
+            console.error('[PLAYER] ========================================');
+            console.error('[PLAYER] FATAL: Player initialization error');
+            console.error('[PLAYER] Error name:', error.name);
+            console.error('[PLAYER] Error message:', error.message);
+            console.error('[PLAYER] Error stack:', error.stack);
+            console.error('[PLAYER] ========================================');
+            this.showError('Failed to initialize player: ' + error.message);
             throw error;
         }
     },
 
     /**
-     * Load football matches
+     * Initialize Video.js player
      */
-    async loadFootballMatches() {
-        try {
-            await FootballAPI.init();
-            return STATE.football.matches;
-        } catch (error) {
-            console.error('[APP] Football matches load error:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Load breaking news
-     */
-    async loadBreakingNews() {
-        try {
-            await BreakingNewsAPI.init();
-            return STATE.breakingNews.items;
-        } catch (error) {
-            console.error('[APP] Breaking news load error:', error);
-            throw error;
-        }
-    },
-
-    /**
-     * Refresh all data
-     */
-    async refreshAllData() {
-        console.log('[APP] Refreshing all data...');
+    initVideoJS: function(videoElement) {
+        var self = this;
         
-        ToastManager.info('Refreshing all data...', 'Syncing');
-
-        try {
-            await Promise.allSettled([
-                GitHubAPI.fetchPlaylist(true),
-                FootballAPI.fetchMatches(true),
-                BreakingNewsAPI.fetchBreakingNews(true),
-            ]);
-
-            ToastManager.success('All data refreshed', 'Updated');
-            console.log('[APP] All data refreshed');
-        } catch (error) {
-            console.error('[APP] Refresh all error:', error);
-            ToastManager.error('Some data failed to refresh', 'Refresh Error');
-        }
-    },
-
-    /* ==========================================
-       KEYBOARD SHORTCUTS
-       ========================================== */
-
-    /**
-     * Set up keyboard shortcuts
-     */
-    setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (event) => {
-            // Ignore if in input fields (except for specific shortcuts)
-            const tag = event.target.tagName;
-            const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-            
-            const key = event.key.toLowerCase();
-            const ctrl = event.ctrlKey || event.metaKey;
-            const shift = event.shiftKey;
-
-            // Ctrl+R - Refresh playlist
-            if (ctrl && key === 'r' && !shift) {
-                event.preventDefault();
-                HeaderComponent.refreshPlaylist();
-                return;
-            }
-
-            // Ctrl+Shift+R - Refresh all data
-            if (ctrl && shift && key === 'r') {
-                event.preventDefault();
-                this.refreshAllData();
-                return;
-            }
-
-            // Ctrl+F - Focus search
-            if (ctrl && key === 'f') {
-                if (!isInput) {
-                    event.preventDefault();
-                    HeaderComponent.openSearch();
-                }
-                return;
-            }
-
-            // Escape - Close modals, sidebar, search
-            if (key === 'escape') {
-                if (ModalManager.isAnyModalOpen()) {
-                    ModalManager.closeAll();
-                    return;
-                }
-                if (STATE.ui.sidebarOpen) {
-                    SidebarComponent.close();
-                    return;
-                }
-                if (STATE.ui.searchOpen) {
-                    HeaderComponent.closeSearch();
-                    return;
-                }
-                if (STATE.player.isFullscreen) {
-                    PlayerModule.toggleFullscreen();
-                    return;
-                }
-            }
-
-            // Only these shortcuts work in input fields
-            if (isInput) return;
-
-            // Space - Play/Pause
-            if (key === ' ' && !STATE.ui.searchOpen) {
-                event.preventDefault();
-                PlayerModule.togglePlay();
-                return;
-            }
-
-            // F - Fullscreen
-            if (key === 'f' && !ctrl) {
-                PlayerModule.toggleFullscreen();
-                return;
-            }
-
-            // M - Mute
-            if (key === 'm' && !ctrl) {
-                PlayerModule.toggleMute();
-                return;
-            }
-
-            // P - Picture in Picture
-            if (key === 'p' && !ctrl) {
-                PlayerModule.togglePiP();
-                return;
-            }
-
-            // Arrow Left - Seek backward
-            if (key === 'arrowleft') {
-                PlayerModule.seekBy(-10);
-                return;
-            }
-
-            // Arrow Right - Seek forward
-            if (key === 'arrowright') {
-                PlayerModule.seekBy(10);
-                return;
-            }
-
-            // Arrow Up - Volume up
-            if (key === 'arrowup') {
-                PlayerModule.setVolume(STATE.player.volume + 0.05);
-                return;
-            }
-
-            // Arrow Down - Volume down
-            if (key === 'arrowdown') {
-                PlayerModule.setVolume(STATE.player.volume - 0.05);
-                return;
-            }
-
-            // 1-9 - Quick channel select
-            if (key >= '1' && key <= '9') {
-                const index = parseInt(key) - 1;
-                const channel = GitHubAPI.getChannelByIndex(index);
-                if (channel) {
-                    PlayerModule.playChannel(channel);
-                    ToastManager.info(`Playing: ${channel.name}`, 'Quick Select');
-                }
-                return;
-            }
-
-            // L - Go to live matches
-            if (key === 'l' && !ctrl) {
-                StateManager.set('football.activeTab', 'live');
-                MatchesComponent.renderMatches();
-                HeaderComponent.scrollToMatches();
-                return;
-            }
-        });
-
-        console.log('[APP] Keyboard shortcuts set up');
-    },
-
-    /* ==========================================
-       BOTTOM NAVIGATION
-       ========================================== */
-
-    /**
-     * Set up bottom navigation (mobile)
-     */
-    setupBottomNavigation() {
-        if (!STATE.dom.elements.bottomNav) return;
-
-        const navItems = Utils.$$('.bottom-nav-item', STATE.dom.elements.bottomNav);
-
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const nav = item.dataset.nav;
-                if (!nav) return;
-
-                // Update active state
-                navItems.forEach(ni => ni.classList.remove('active'));
-                item.classList.add('active');
-
-                // Handle navigation
-                this.handleBottomNav(nav);
-            });
-        });
-
-        console.log('[APP] Bottom navigation set up');
-    },
-
-    /**
-     * Handle bottom navigation actions
-     * @param {string} nav - Navigation target
-     */
-    handleBottomNav(nav) {
-        StateManager.set('app.activeView', nav);
-
-        switch (nav) {
-            case 'home':
-                // Scroll to top
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                break;
-
-            case 'play-url':
-                // Open play URL modal
-                ModalManager.openPlayUrlModal();
-                break;
-
-            case 'live':
-                // Switch to live matches tab and scroll
-                StateManager.set('football.activeTab', 'live');
-                MatchesComponent.renderMatches();
-                const matchesSection = Utils.$('#matches-section');
-                if (matchesSection) {
-                    matchesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                break;
-
-            case 'scores':
-                // Scroll to matches section
-                const scoresSection = Utils.$('#matches-section');
-                if (scoresSection) {
-                    scoresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                break;
-
-            case 'menu':
-                // Toggle sidebar
-                SidebarComponent.toggle();
-                break;
-        }
-    },
-
-    /* ==========================================
-       SCROLL TO TOP
-       ========================================== */
-
-    /**
-     * Set up scroll to top button
-     */
-    setupScrollToTop() {
-        // Create scroll to top button if it doesn't exist
-        let scrollBtn = Utils.$('.scroll-to-top');
-        
-        if (!scrollBtn) {
-            scrollBtn = Utils.createElement('button', {
-                className: 'scroll-to-top',
-                'aria-label': 'Scroll to top',
-                title: 'Scroll to top',
-                onClick: () => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                },
-            });
-            scrollBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
-            document.body.appendChild(scrollBtn);
-        }
-
-        // Show/hide based on scroll position
-        const handleScroll = Utils.throttle(() => {
-            const scrollY = window.scrollY || window.pageYOffset;
-            StateManager.set('ui.scrollPosition', scrollY);
-
-            if (scrollY > 500) {
-                scrollBtn.classList.add('visible');
-            } else {
-                scrollBtn.classList.remove('visible');
-            }
-        }, CONFIG.UI.SCROLL_THROTTLE);
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        
-        console.log('[APP] Scroll to top set up');
-    },
-
-    /* ==========================================
-       PWA INSTALL
-       ========================================== */
-
-    /**
-     * Set up PWA install prompt
-     */
-    setupPWAInstall() {
-        // Listen for beforeinstallprompt
-        window.addEventListener('beforeinstallprompt', (event) => {
-            // Prevent default browser prompt
-            event.preventDefault();
-            
-            // Store the event
-            STATE.pwa.installPromptEvent = event;
-            STATE.pwa.installable = true;
-
-            console.log('[APP] PWA install prompt available');
-
-            // Show install banner after delay
-            if (!STATE.pwa.installBannerDismissed) {
-                setTimeout(() => {
-                    this.showInstallBanner();
-                }, CONFIG.PWA.INSTALL_PROMPT_DELAY);
-            }
-        });
-
-        // Listen for app installed
-        window.addEventListener('appinstalled', () => {
-            STATE.pwa.installed = true;
-            STATE.pwa.installPromptEvent = null;
-            
-            console.log('[APP] PWA installed successfully');
-            ToastManager.success('App installed successfully!', 'Installed');
-            
-            // Hide install banner
-            this.hideInstallBanner();
-        });
-
-        console.log('[APP] PWA install handler set up');
-    },
-
-    /**
-     * Show install banner
-     */
-    showInstallBanner() {
-        if (!STATE.pwa.installable || STATE.pwa.installed) return;
-
-        // Check if banner already exists
-        if (Utils.$('.install-banner')) return;
-
-        const banner = Utils.createElement('div', {
-            className: 'install-banner',
-        });
-
-        banner.innerHTML = `
-            <img src="assets/favicon.png" alt="XBZ Prime TV" class="install-banner-icon" width="40" height="40">
-            <div class="install-banner-text">
-                <div class="install-banner-title">Install XBZ Prime TV</div>
-                <div class="install-banner-subtitle">Add to home screen for quick access</div>
-            </div>
-            <button class="btn btn-sm btn-primary install-btn">Install</button>
-            <button class="install-banner-close" aria-label="Dismiss">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-
-        document.body.appendChild(banner);
-
-        // Install button
-        const installBtn = Utils.$('.install-btn', banner);
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (STATE.pwa.installPromptEvent) {
-                    await STATE.pwa.installPromptEvent.prompt();
-                    const result = await STATE.pwa.installPromptEvent.userChoice;
-                    console.log(`[APP] PWA install choice: ${result.outcome}`);
-                    STATE.pwa.installPromptEvent = null;
-                }
-                this.hideInstallBanner();
-            });
-        }
-
-        // Close button
-        const closeBtn = Utils.$('.install-banner-close', banner);
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                this.hideInstallBanner();
-                STATE.pwa.installBannerDismissed = true;
-                Utils.setToStorage(CONFIG.STORAGE_KEYS.INSTALL_PROMPT_SHOWN, true);
-            });
-        }
-
-        console.log('[APP] Install banner shown');
-    },
-
-    /**
-     * Hide install banner
-     */
-    hideInstallBanner() {
-        const banner = Utils.$('.install-banner');
-        if (banner) {
-            banner.classList.add('removing');
-            setTimeout(() => banner.remove(), 300);
-        }
-    },
-
-    /* ==========================================
-       INTERSECTION OBSERVERS
-       ========================================== */
-
-    /**
-     * Set up intersection observers for lazy loading and animations
-     */
-    setupIntersectionObservers() {
-        // Channel card reveal observer
-        ChannelsComponent.setupIntersectionObserver();
-
-        // Match card reveal observer
-        MatchesComponent.setupIntersectionObserver();
-
-        // Observe initial elements
-        this.observeRevealElements();
-
-        // Re-observe on content changes
-        const observer = new MutationObserver(Utils.debounce(() => {
-            this.observeRevealElements();
-        }, 200));
-
-        const grid = Utils.$('#channels-grid');
-        if (grid) {
-            observer.observe(grid, { childList: true, subtree: false });
-        }
-
-        const matchGrid = Utils.$('#matches-grid');
-        if (matchGrid) {
-            observer.observe(matchGrid, { childList: true, subtree: false });
-        }
-
-        console.log('[APP] Intersection observers set up');
-    },
-
-    /**
-     * Observe all reveal elements
-     */
-    observeRevealElements() {
-        // Channel cards
-        ChannelsComponent.observeChannelCards();
-
-        // Match cards
-        const matchCards = Utils.$$('.match-card.reveal:not(.visible)');
-        if (STATE.dom.observers.matchReveal) {
-            matchCards.forEach(card => {
-                STATE.dom.observers.matchReveal.observe(card);
-            });
-        }
-    },
-
-    /* ==========================================
-       CUSTOM STREAM PANEL
-       ========================================== */
-
-    /**
-     * Set up custom stream collapsible panel
-     */
-    setupCustomStreamPanel() {
-        const toggle = Utils.$('#custom-stream-toggle');
-        const content = Utils.$('#custom-stream-content');
-        
-        if (!toggle || !content) return;
-
-        // Toggle collapse
-        toggle.addEventListener('click', () => {
-            const isOpen = !content.classList.contains('hidden');
-            
-            if (isOpen) {
-                content.classList.add('hidden');
-                toggle.querySelector('.chevron-icon')?.classList.remove('open');
-                StateManager.set('ui.customStreamOpen', false);
-            } else {
-                content.classList.remove('hidden');
-                toggle.querySelector('.chevron-icon')?.classList.add('open');
-                StateManager.set('ui.customStreamOpen', true);
-            }
-        });
-
-        // Stream tabs
-        const streamTabs = Utils.$$('.stream-tab');
-        streamTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabName = tab.dataset.streamTab;
+        return new Promise(function(resolve, reject) {
+            try {
+                console.log('[PLAYER] Creating Video.js instance...');
                 
-                // Update active tab
-                streamTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Show corresponding content
-                const tabContents = Utils.$$('.stream-tab-content');
-                tabContents.forEach(tc => tc.classList.add('hidden'));
-                
-                const targetContent = Utils.$(`#stream-tab-${tabName}`);
-                if (targetContent) {
-                    targetContent.classList.remove('hidden');
-                }
-                
-                StateManager.set('ui.customStreamTab', tabName);
-            });
-        });
-
-        // Direct URL play button
-        const directPlayBtn = Utils.$('#direct-url-play');
-        const directUrlInput = Utils.$('#direct-url-input');
-        
-        if (directPlayBtn && directUrlInput) {
-            directPlayBtn.addEventListener('click', () => {
-                const url = directUrlInput.value.trim();
-                if (url && Utils.isValidURL(url)) {
-                    PlayerModule.playDirectUrl(url);
-                } else {
-                    ToastManager.error('Please enter a valid stream URL', 'Invalid URL');
-                }
-            });
-
-            directUrlInput.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    directPlayBtn.click();
-                }
-            });
-        }
-
-        // M3U load button
-        const m3uLoadBtn = Utils.$('#m3u-load');
-        const m3uInput = Utils.$('#m3u-input');
-        
-        if (m3uLoadBtn && m3uInput) {
-            m3uLoadBtn.addEventListener('click', async () => {
-                const content = m3uInput.value.trim();
-                if (!content) {
-                    ToastManager.warning('Please paste M3U content or URL', 'Empty Input');
-                    return;
-                }
-
-                try {
-                    let m3uText = content;
-                    
-                    // Check if it's a URL
-                    if (Utils.isValidURL(content)) {
-                        ToastManager.info('Fetching M3U playlist...', 'Loading');
-                        m3uText = await Utils.fetchText(content);
-                    }
-                    
-                    // Parse M3U
-                    const channels = Utils.parseM3U(m3uText);
-                    
-                    if (channels.length === 0) {
-                        ToastManager.error('No channels found in playlist', 'Parse Error');
-                        return;
-                    }
-                    
-                    // Add to state
-                    const allChannels = [...STATE.playlist.channels, ...channels];
-                    const unique = Utils.removeDuplicateChannels(allChannels);
-                    
-                    StateManager.set('playlist.channels', unique);
-                    StateManager.set('playlist.categories', Utils.extractCategories(unique));
-                    
-                    ToastManager.success(
-                        `${channels.length} channels loaded from M3U`,
-                        'M3U Loaded'
-                    );
-                    
-                    // Clear input
-                    m3uInput.value = '';
-                    
-                } catch (error) {
-                    console.error('[APP] M3U load error:', error);
-                    ToastManager.error('Failed to load M3U playlist', 'Error');
-                }
-            });
-        }
-
-        // HTML Embed render button
-        const embedRenderBtn = Utils.$('#embed-render');
-        const embedInput = Utils.$('#embed-input');
-        const embedPreview = Utils.$('#embed-preview');
-        
-        if (embedRenderBtn && embedInput) {
-            embedRenderBtn.addEventListener('click', () => {
-                const code = embedInput.value.trim();
-                if (!code) {
-                    ToastManager.warning('Please paste HTML embed code', 'Empty Input');
-                    return;
-                }
-
-                if (!Utils.isEmbedCode(code)) {
-                    ToastManager.error('No iframe found in embed code', 'Invalid Embed');
-                    return;
-                }
-
-                // Render embed
-                PlayerModule.playEmbed(code);
-                
-                // Show preview
-                if (embedPreview) {
-                    embedPreview.classList.remove('hidden');
-                    embedPreview.innerHTML = code;
-                }
-                
-                // Scroll to player
-                const playerSection = Utils.$('#player-section');
-                if (playerSection) {
-                    playerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                
-                ToastManager.success('Embed rendered', 'Success');
-            });
-        }
-
-        // Player overlay buttons
-        this.setupPlayerOverlayButtons();
-
-        console.log('[APP] Custom stream panel set up');
-    },
-
-    /**
-     * Set up player overlay button handlers
-     */
-    setupPlayerOverlayButtons() {
-        // Retry button
-        if (STATE.dom.elements.playerRetry) {
-            STATE.dom.elements.playerRetry.addEventListener('click', () => {
-                PlayerModule.showLoading();
-                PlayerModule.hideError();
-                
-                const source = STATE.player.availableSources[STATE.player.currentSourceIndex];
-                if (source) {
-                    PlayerModule.playStream(source).catch(() => {
-                        PlayerModule.handlePlaybackError(new Error('Retry failed'));
-                    });
-                }
-            });
-        }
-
-        // Next source button
-        if (STATE.dom.elements.playerNextSource) {
-            STATE.dom.elements.playerNextSource.addEventListener('click', () => {
-                PlayerModule.tryNextSource();
-            });
-        }
-
-        // Stop button
-        if (STATE.dom.elements.playerStop) {
-            STATE.dom.elements.playerStop.addEventListener('click', () => {
-                PlayerModule.stop();
-            });
-        }
-
-        // Cancel loading button
-        if (STATE.dom.elements.playerCancel) {
-            STATE.dom.elements.playerCancel.addEventListener('click', () => {
-                PlayerModule.stop();
-                ToastManager.info('Playback cancelled', 'Stopped');
-            });
-        }
-    },
-
-    /* ==========================================
-       ERROR HANDLING
-       ========================================== */
-
-    /**
-     * Global error handler
-     */
-    setupGlobalErrorHandler() {
-        window.addEventListener('error', (event) => {
-            console.error('[APP] Global error:', event.error);
-            
-            // Don't show toast for every error, only critical ones
-            if (event.error && event.error.critical) {
-                ToastManager.error(
-                    'Something went wrong. Please refresh the page.',
-                    'Application Error'
-                );
-            }
-        });
-
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('[APP] Unhandled promise rejection:', event.reason);
-            
-            // Prevent default console error
-            event.preventDefault();
-        });
-
-        console.log('[APP] Global error handlers set up');
-    },
-
-    /* ==========================================
-       PERFORMANCE MONITORING
-       ========================================== */
-
-    /**
-     * Set up performance monitoring
-     */
-    setupPerformanceMonitoring() {
-        // Record first paint
-        if (window.performance) {
-            const paintEntries = performance.getEntriesByType('paint');
-            paintEntries.forEach(entry => {
-                if (entry.name === 'first-paint') {
-                    STATE.performance.firstPaint = entry.startTime;
-                }
-                if (entry.name === 'first-contentful-paint') {
-                    STATE.performance.firstContentfulPaint = entry.startTime;
-                }
-            });
-
-            // Observe long tasks
-            if (PerformanceObserver) {
-                try {
-                    const observer = new PerformanceObserver((list) => {
-                        for (const entry of list.getEntries()) {
-                            if (entry.duration > 50) {
-                                console.warn(`[PERF] Long task: ${entry.duration.toFixed(2)}ms`);
-                            }
+                var options = {
+                    controls: CONFIG.PLAYER.CONTROLS,
+                    autoplay: CONFIG.PLAYER.AUTOPLAY,
+                    muted: CONFIG.PLAYER.MUTED,
+                    preload: CONFIG.PLAYER.PRELOAD,
+                    playsinline: CONFIG.PLAYER.PLAYSINLINE,
+                    loop: CONFIG.PLAYER.LOOP,
+                    fluid: CONFIG.PLAYER.FLUID,
+                    aspectRatio: CONFIG.PLAYER.ASPECT_RATIO,
+                    liveui: CONFIG.PLAYER.LIVEUI,
+                    language: 'en',
+                    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+                    controlBar: {
+                        children: [
+                            'playToggle',
+                            'volumePanel',
+                            'currentTimeDisplay',
+                            'timeDivider',
+                            'durationDisplay',
+                            'progressControl',
+                            'liveDisplay',
+                            'remainingTimeDisplay',
+                            'customControlSpacer',
+                            'playbackRateMenuButton',
+                            'pictureInPictureToggle',
+                            'fullscreenToggle'
+                        ]
+                    },
+                    userActions: {
+                        hotkeys: true
+                    },
+                    html5: {
+                        nativeTextTracks: false,
+                        hls: {
+                            overrideNative: true
+                        },
+                        vhs: {
+                            overrideNative: true
                         }
-                    });
-                    observer.observe({ entryTypes: ['longtask'] });
-                } catch (e) {
-                    // longtask may not be supported
-                }
+                    }
+                };
+
+                console.log('[PLAYER] Video.js options:', JSON.stringify(options, null, 2));
+
+                var player = videojs(videoElement, options, function onPlayerReady() {
+                    console.log('[PLAYER] Video.js player ready event fired');
+                    console.log('[PLAYER] Player ID:', player.id());
+                    console.log('[PLAYER] Player tech name:', player.techName_);
+                    
+                    STATE.player.videoJS = player;
+                    player.volume(STATE.player.volume);
+                    
+                    if (STATE.player.isMuted) {
+                        player.muted(true);
+                        console.log('[PLAYER] Player muted by default');
+                    }
+
+                    console.log('[PLAYER] Video.js ready - Tech:', player.techName_);
+                    resolve(player);
+                });
+
+                player.on('error', function() {
+                    var error = player.error();
+                    console.error('[PLAYER] Video.js error event fired');
+                    console.error('[PLAYER] Error code:', error ? error.code : 'unknown');
+                    console.error('[PLAYER] Error message:', error ? error.message : 'unknown');
+                });
+
+                console.log('[PLAYER] Video.js instance created');
+
+            } catch (error) {
+                console.error('[PLAYER] Video.js initialization error:', error);
+                reject(error);
             }
+        });
+    },
+
+    /* ==========================================
+       STREAM PLAYBACK
+       ========================================== */
+
+    /**
+     * Play a channel stream
+     */
+    playChannel: async function(channel, sourceIndex) {
+        if (!channel) {
+            console.error('[PLAYER] playChannel called with null/undefined channel');
+            this.showError('No channel provided');
+            return;
         }
 
-        console.log('[APP] Performance monitoring set up');
+        sourceIndex = sourceIndex || 0;
+
+        console.log('[PLAYER] ========================================');
+        console.log('[PLAYER] Playing channel:', channel.name);
+        console.log('[PLAYER] Channel ID:', channel.id);
+        console.log('[PLAYER] Channel URL:', channel.url ? channel.url.substring(0, 80) + '...' : 'NONE');
+        console.log('[PLAYER] Channel category:', channel.category);
+        console.log('[PLAYER] Channel quality:', channel.quality);
+        console.log('[PLAYER] Source index:', sourceIndex);
+
+        StateManager.set('player.currentChannel', channel);
+        StateManager.set('player.isLoading', true);
+        StateManager.set('player.hasError', false);
+        StateManager.set('player.errorMessage', '');
+        StateManager.set('player.retryCount', 0);
+
+        var sources = this.collectSources(channel);
+        console.log('[PLAYER] Available sources:', sources.length);
+        sources.forEach(function(src, i) {
+            console.log('[PLAYER]   Source ' + (i + 1) + ':', src.label, '-', src.url.substring(0, 60) + '...');
+        });
+
+        STATE.player.availableSources = sources;
+        STATE.player.currentSourceIndex = Math.min(sourceIndex, sources.length - 1);
+
+        this.showLoading();
+        this.hidePlaceholder();
+
+        try {
+            var source = sources[STATE.player.currentSourceIndex];
+            if (!source) {
+                console.error('[PLAYER] No valid source found at index', STATE.player.currentSourceIndex);
+                throw new Error('No valid stream source available');
+            }
+
+            console.log('[PLAYER] Selected source:', source.label);
+            console.log('[PLAYER] Source URL:', source.url.substring(0, 80) + '...');
+            console.log('[PLAYER] Source quality:', source.quality);
+            console.log('[PLAYER] URL extension:', Utils.getFileExtension(source.url));
+
+            STATE.player.currentSource = source.url;
+            await this.playStream(source);
+
+            this.updateSourceInfo(channel);
+            this.updateQuickChannels();
+
+            Utils.setToStorage(CONFIG.STORAGE_KEYS.LAST_CHANNEL, {
+                id: channel.id,
+                name: channel.name,
+                logo: channel.logo,
+                category: channel.category
+            });
+
+            console.log('[PLAYER] SUCCESS: Now playing - ' + channel.name);
+            console.log('[PLAYER] ========================================');
+
+        } catch (error) {
+            console.error('[PLAYER] ========================================');
+            console.error('[PLAYER] ERROR playing channel:', channel.name);
+            console.error('[PLAYER] Error name:', error.name);
+            console.error('[PLAYER] Error message:', error.message);
+            console.error('[PLAYER] Error stack:', error.stack);
+            console.error('[PLAYER] ========================================');
+            this.handlePlaybackError(error);
+        }
+    },
+
+    /**
+     * Play a direct URL
+     */
+    playDirectUrl: async function(url) {
+        console.log('[PLAYER] ========================================');
+        console.log('[PLAYER] Playing direct URL');
+        console.log('[PLAYER] URL:', url ? url.substring(0, 100) + '...' : 'NONE');
+        console.log('[PLAYER] Extension:', Utils.getFileExtension(url));
+
+        if (!url || !Utils.isValidURL(url)) {
+            console.error('[PLAYER] Invalid URL provided');
+            this.showError('Invalid stream URL');
+            return;
+        }
+
+        StateManager.set('player.isLoading', true);
+        StateManager.set('player.hasError', false);
+        StateManager.set('player.retryCount', 0);
+
+        var channel = {
+            id: Utils.generateId('direct'),
+            name: 'Custom Stream',
+            logo: '',
+            category: 'Custom',
+            quality: Utils.detectQuality(url),
+            urls: [url]
+        };
+
+        STATE.player.currentChannel = channel;
+        STATE.player.availableSources = [{ url: url, quality: channel.quality, label: 'Direct URL' }];
+        STATE.player.currentSourceIndex = 0;
+        STATE.player.currentSource = url;
+
+        this.showLoading();
+        this.hidePlaceholder();
+
+        try {
+            await this.playStream({ url: url, quality: channel.quality });
+            this.updateSourceInfo(channel);
+            console.log('[PLAYER] SUCCESS: Direct URL playing');
+            console.log('[PLAYER] ========================================');
+        } catch (error) {
+            console.error('[PLAYER] ========================================');
+            console.error('[PLAYER] ERROR playing direct URL');
+            console.error('[PLAYER] Error:', error.message);
+            console.error('[PLAYER] ========================================');
+            this.handlePlaybackError(error);
+        }
+    },
+
+    /**
+     * Play HTML embed/iframe content
+     */
+    playEmbed: function(embedCode) {
+        console.log('[PLAYER] Playing HTML embed');
+        console.log('[PLAYER] Embed code length:', embedCode ? embedCode.length : 0);
+
+        var iframeSrc = Utils.extractIframeSrc(embedCode);
+        
+        if (!iframeSrc) {
+            console.error('[PLAYER] No iframe src found in embed code');
+            this.showError('Invalid embed code - no iframe found');
+            return;
+        }
+
+        console.log('[PLAYER] Iframe src:', iframeSrc);
+
+        var player = STATE.player.videoJS;
+        if (player) {
+            console.log('[PLAYER] Disposing Video.js player for embed');
+            player.dispose();
+            STATE.player.videoJS = null;
+        }
+
+        var wrapper = Utils.$('.player-wrapper');
+        if (!wrapper) {
+            console.error('[PLAYER] Player wrapper not found');
+            return;
+        }
+
+        var existingIframe = Utils.$('.embed-iframe', wrapper);
+        if (existingIframe) {
+            console.log('[PLAYER] Removing existing embed iframe');
+            existingIframe.remove();
+        }
+
+        var iframe = Utils.createElement('iframe', {
+            src: iframeSrc,
+            className: 'embed-iframe',
+            style: {
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                zIndex: '10'
+            },
+            allow: 'autoplay; encrypted-media; fullscreen',
+            allowfullscreen: 'true'
+        });
+
+        wrapper.appendChild(iframe);
+        console.log('[PLAYER] Embed iframe added to DOM');
+
+        this.hidePlaceholder();
+        this.hideLoading();
+        this.hideError();
+
+        StateManager.set('player.isPlaying', true);
+        StateManager.set('player.isLoading', false);
+
+        var channel = {
+            id: Utils.generateId('embed'),
+            name: 'Embedded Stream',
+            logo: '',
+            category: 'Embed'
+        };
+
+        STATE.player.currentChannel = channel;
+        STATE.player.currentSource = iframeSrc;
+        this.updateSourceInfo(channel);
+        console.log('[PLAYER] SUCCESS: Embed rendered');
+    },
+
+    /**
+     * Play stream based on type
+     */
+    playStream: async function(source) {
+        var url = source.url;
+        var player = STATE.player.videoJS;
+
+        console.log('[PLAYER] --- Playing Stream ---');
+        console.log('[PLAYER] URL:', url.substring(0, 100) + '...');
+        console.log('[PLAYER] Quality:', source.quality);
+
+        if (!player) {
+            console.error('[PLAYER] Video.js player not initialized');
+            throw new Error('Player not initialized');
+        }
+
+        console.log('[PLAYER] Resetting player...');
+        player.reset();
+        
+        if (STATE.player.hls) {
+            console.log('[PLAYER] Destroying existing HLS instance');
+            STATE.player.hls.destroy();
+            STATE.player.hls = null;
+        }
+
+        var extension = Utils.getFileExtension(url);
+        console.log('[PLAYER] Stream type detected:', extension);
+
+        if (Utils.isHLSUrl(url)) {
+            console.log('[PLAYER] Stream type: HLS (m3u8)');
+            await this.playHLSStream(url, player);
+        } else if (Utils.isDashUrl(url)) {
+            console.log('[PLAYER] Stream type: DASH (mpd)');
+            await this.playDASHStream(url, player);
+        } else if (['mp4', 'ts', 'webm', 'ogg', 'mkv'].indexOf(extension) !== -1) {
+            console.log('[PLAYER] Stream type: Direct (' + extension + ')');
+            await this.playDirectStream(url, player);
+        } else {
+            console.log('[PLAYER] Unknown stream type, trying HLS first...');
+            await this.playHLSStream(url, player);
+        }
+
+        try {
+            console.log('[PLAYER] Attempting playback...');
+            await player.play();
+            StateManager.set('player.isPlaying', true);
+            StateManager.set('player.isPaused', false);
+            StateManager.set('player.isLoading', false);
+            this.hideLoading();
+            this.hideError();
+            console.log('[PLAYER] Playback started successfully');
+        } catch (playError) {
+            console.warn('[PLAYER] Initial play attempt failed:', playError.name, '-', playError.message);
+            
+            if (playError.name === 'NotAllowedError') {
+                console.log('[PLAYER] Autoplay blocked, trying muted...');
+                StateManager.set('player.isMuted', true);
+                player.muted(true);
+                try {
+                    await player.play();
+                    StateManager.set('player.isPlaying', true);
+                    StateManager.set('player.isLoading', false);
+                    this.hideLoading();
+                    this.hideError();
+                    console.log('[PLAYER] Playback started (muted)');
+                } catch (e) {
+                    console.error('[PLAYER] Muted play also failed:', e.message);
+                    throw e;
+                }
+            } else {
+                throw playError;
+            }
+        }
+    },
+
+    /**
+     * Play HLS stream with HLS.js
+     */
+    playHLSStream: function(url, player) {
+        var self = this;
+        
+        console.log('[PLAYER] --- HLS Stream Setup ---');
+        console.log('[PLAYER] URL:', url.substring(0, 100) + '...');
+        console.log('[PLAYER] Native HLS support:', player.canPlayType('application/vnd.apple.mpegurl') ? 'YES' : 'NO');
+        console.log('[PLAYER] HLS.js available:', typeof Hls !== 'undefined' ? 'YES' : 'NO');
+
+        return new Promise(function(resolve, reject) {
+            try {
+                if (typeof Hls === 'undefined') {
+                    console.error('[PLAYER] HLS.js library not loaded');
+                    reject(new Error('HLS.js not loaded. Check CDN connection.'));
+                    return;
+                }
+
+                if (player.canPlayType('application/vnd.apple.mpegurl')) {
+                    console.log('[PLAYER] Using NATIVE HLS support (Safari)');
+                    player.src({ src: url, type: 'application/x-mpegurl' });
+                    
+                    var loadTimeout = setTimeout(function() {
+                        console.warn('[PLAYER] HLS load timeout (10s)');
+                    }, 10000);
+                    
+                    player.one('loadedmetadata', function() {
+                        clearTimeout(loadTimeout);
+                        console.log('[PLAYER] Native HLS metadata loaded');
+                        resolve();
+                    });
+                    
+                    player.one('error', function() {
+                        clearTimeout(loadTimeout);
+                        var err = player.error();
+                        console.error('[PLAYER] Native HLS error:', err);
+                        reject(err || new Error('Native HLS playback error'));
+                    });
+                    return;
+                }
+
+                if (!Hls.isSupported()) {
+                    console.error('[PLAYER] HLS.js not supported in this browser');
+                    console.error('[PLAYER] MSE support:', 'MediaSource' in window);
+                    reject(new Error('HLS not supported. Browser may not support MediaSource Extensions.'));
+                    return;
+                }
+
+                console.log('[PLAYER] Creating HLS.js instance...');
+                console.log('[PLAYER] HLS config:', JSON.stringify(CONFIG.PLAYER.HLS_OPTIONS));
+                
+                var hls = new Hls(CONFIG.PLAYER.HLS_OPTIONS);
+                STATE.player.hls = hls;
+
+                hls.loadSource(url);
+                hls.attachMedia(player.tech().el());
+                console.log('[PLAYER] HLS source loaded and attached');
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+                    console.log('[PLAYER] HLS MANIFEST PARSED');
+                    console.log('[PLAYER]   Levels:', data.levels.length);
+                    console.log('[PLAYER]   Duration:', data.levels[0] ? data.levels[0].details ? data.levels[0].details.totalduration : 'LIVE' : 'unknown');
+                    console.log('[PLAYER]   Audio tracks:', data.audioTracks.length);
+                    
+                    data.levels.forEach(function(level, i) {
+                        console.log('[PLAYER]   Level ' + i + ': ' + level.width + 'x' + level.height + ' @ ' + (level.bitrate / 1000).toFixed(0) + 'kbps');
+                    });
+                    
+                    STATE.player.quality = 'auto';
+                    hls.currentLevel = -1;
+                    resolve();
+                });
+
+                hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
+                    console.log('[PLAYER] HLS Quality switched to level', data.level);
+                });
+
+                hls.on(Hls.Events.FRAG_LOADING, function(event, data) {
+                    console.log('[PLAYER] HLS Loading fragment:', data.frag ? data.frag.url.substring(data.frag.url.length - 40) : 'unknown');
+                });
+
+                hls.on(Hls.Events.FRAG_LOADED, function(event, data) {
+                    console.log('[PLAYER] HLS Fragment loaded successfully');
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('[PLAYER] HLS ERROR EVENT');
+                    console.error('[PLAYER]   Type:', data.type);
+                    console.error('[PLAYER]   Details:', data.details);
+                    console.error('[PLAYER]   Fatal:', data.fatal);
+                    console.error('[PLAYER]   Reason:', data.reason);
+                    
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.log('[PLAYER] HLS network error, attempting recovery...');
+                                console.log('[PLAYER]   HTTP code:', data.response ? data.response.code : 'unknown');
+                                console.log('[PLAYER]   URL:', data.url ? data.url.substring(0, 80) + '...' : 'unknown');
+                                hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                console.log('[PLAYER] HLS media error, attempting recovery...');
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                console.error('[PLAYER] HLS fatal error, destroying instance');
+                                hls.destroy();
+                                reject(new Error('HLS fatal error: ' + data.details + (data.reason ? ' - ' + data.reason : '')));
+                                break;
+                        }
+                    }
+                });
+
+                var manifestTimeout = setTimeout(function() {
+                    console.warn('[PLAYER] HLS manifest load timeout (' + CONFIG.PLAYER.HLS_OPTIONS.manifestLoadingTimeOut + 'ms)');
+                }, CONFIG.PLAYER.HLS_OPTIONS.manifestLoadingTimeOut);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    clearTimeout(manifestTimeout);
+                });
+
+            } catch (error) {
+                console.error('[PLAYER] HLS setup exception:', error);
+                reject(error);
+            }
+        });
+    },
+
+    /**
+     * Play DASH stream
+     */
+    playDASHStream: function(url, player) {
+        console.log('[PLAYER] --- DASH Stream Setup ---');
+        console.log('[PLAYER] URL:', url.substring(0, 100) + '...');
+        
+        player.src({
+            src: url,
+            type: 'application/dash+xml'
+        });
+        
+        return new Promise(function(resolve, reject) {
+            player.one('loadedmetadata', function() {
+                console.log('[PLAYER] DASH metadata loaded');
+                resolve();
+            });
+            player.one('error', function() {
+                var err = player.error();
+                console.error('[PLAYER] DASH error:', err);
+                reject(err || new Error('DASH playback error'));
+            });
+        });
+    },
+
+    /**
+     * Play direct stream (MP4, TS, etc.)
+     */
+    playDirectStream: function(url, player) {
+        console.log('[PLAYER] --- Direct Stream Setup ---');
+        console.log('[PLAYER] URL:', url.substring(0, 100) + '...');
+        
+        var extension = Utils.getFileExtension(url);
+        var mimeTypes = {
+            'mp4': 'video/mp4',
+            'ts': 'video/mp2t',
+            'webm': 'video/webm',
+            'ogg': 'video/ogg',
+            'mkv': 'video/x-matroska'
+        };
+
+        var mimeType = mimeTypes[extension] || 'video/mp4';
+        console.log('[PLAYER] MIME type:', mimeType);
+
+        player.src({
+            src: url,
+            type: mimeType
+        });
+
+        return new Promise(function(resolve, reject) {
+            player.one('loadedmetadata', function() {
+                console.log('[PLAYER] Direct stream metadata loaded');
+                resolve();
+            });
+            player.one('error', function() {
+                var err = player.error();
+                console.error('[PLAYER] Direct stream error:', err);
+                reject(err || new Error('Direct stream playback error'));
+            });
+        });
+    },
+
+    /* ==========================================
+       SOURCE MANAGEMENT
+       ========================================== */
+
+    /**
+     * Collect all available sources for a channel
+     */
+    collectSources: function(channel) {
+        console.log('[PLAYER] Collecting sources for:', channel.name);
+        var sources = [];
+
+        if (channel.url && Utils.isValidURL(channel.url)) {
+            sources.push({
+                url: channel.url,
+                quality: channel.quality || 'HD',
+                label: 'Primary (' + (channel.quality || 'HD') + ')',
+                isPrimary: true
+            });
+            console.log('[PLAYER]   Added primary URL');
+        } else {
+            console.warn('[PLAYER]   Channel has no valid primary URL');
+        }
+
+        if (Array.isArray(channel.urls)) {
+            channel.urls.forEach(function(url, index) {
+                if (url !== channel.url && Utils.isValidURL(url)) {
+                    var quality = Utils.detectQuality(url);
+                    sources.push({
+                        url: url,
+                        quality: quality,
+                        label: 'Source ' + (index + 2) + ' (' + quality + ')',
+                        isPrimary: false
+                    });
+                    console.log('[PLAYER]   Added alternative URL #' + (index + 2));
+                }
+            });
+        }
+
+        var uniqueSources = [];
+        var seenUrls = new Set();
+        sources.forEach(function(source) {
+            if (!seenUrls.has(source.url)) {
+                seenUrls.add(source.url);
+                uniqueSources.push(source);
+            }
+        });
+
+        console.log('[PLAYER]   Total unique sources:', uniqueSources.length);
+        return uniqueSources;
+    },
+
+    /**
+     * Switch to a different source
+     */
+    switchSource: async function(sourceIndex) {
+        var sources = STATE.player.availableSources;
+        
+        console.log('[PLAYER] Switching source to index:', sourceIndex, '/', sources.length);
+        
+        if (sourceIndex < 0 || sourceIndex >= sources.length) {
+            console.error('[PLAYER] Invalid source index');
+            return;
+        }
+
+        STATE.player.currentSourceIndex = sourceIndex;
+        STATE.player.retryCount = 0;
+
+        var source = sources[sourceIndex];
+        STATE.player.currentSource = source.url;
+
+        console.log('[PLAYER] New source:', source.label);
+        console.log('[PLAYER] New URL:', source.url.substring(0, 80) + '...');
+
+        this.showLoading();
+        this.hideError();
+
+        try {
+            await this.playStream(source);
+            this.updateSourceInfo(STATE.player.currentChannel);
+            console.log('[PLAYER] Source switched successfully');
+        } catch (error) {
+            console.error('[PLAYER] Error switching source:', error.message);
+            this.handlePlaybackError(error);
+        }
+    },
+
+    /**
+     * Try next available source
+     */
+    tryNextSource: async function() {
+        var nextIndex = STATE.player.currentSourceIndex + 1;
+        var sources = STATE.player.availableSources;
+
+        console.log('[PLAYER] Trying next source. Current:', STATE.player.currentSourceIndex, 'Next:', nextIndex, 'Total:', sources.length);
+
+        if (nextIndex < sources.length) {
+            console.log('[PLAYER] Switching to next source...');
+            await this.switchSource(nextIndex);
+        } else {
+            console.log('[PLAYER] No more sources available');
+            this.showError('All available sources failed. Please try again later.');
+        }
+    },
+
+    /* ==========================================
+       ERROR HANDLING & RETRY
+       ========================================== */
+
+    /**
+     * Handle playback error with retry logic
+     */
+    handlePlaybackError: function(error) {
+        console.error('[PLAYER] ========================================');
+        console.error('[PLAYER] HANDLING PLAYBACK ERROR');
+        console.error('[PLAYER] Error name:', error.name);
+        console.error('[PLAYER] Error message:', error.message);
+        console.error('[PLAYER] Error stack:', error.stack);
+        
+        var retryCount = STATE.player.retryCount;
+        var maxRetries = CONFIG.MAX_RETRY_ATTEMPTS;
+        var currentSource = STATE.player.currentSource;
+        var currentSourceIndex = STATE.player.currentSourceIndex;
+        var totalSources = STATE.player.availableSources.length;
+
+        console.error('[PLAYER] Retry count:', retryCount, '/', maxRetries);
+        console.error('[PLAYER] Current source index:', currentSourceIndex, '/', totalSources);
+        console.error('[PLAYER] Current URL:', currentSource ? currentSource.substring(0, 80) + '...' : 'NONE');
+
+        StateManager.set('player.hasError', true);
+        StateManager.set('player.errorMessage', error.message || 'Unknown playback error');
+        StateManager.set('player.isLoading', false);
+        StateManager.set('player.isPlaying', false);
+
+        this.hideLoading();
+
+        if (retryCount < maxRetries) {
+            var delay = CONFIG.RETRY_DELAYS[retryCount] || 2000;
+            console.log('[PLAYER] Scheduling retry ' + (retryCount + 1) + '/' + maxRetries + ' in ' + delay + 'ms...');
+
+            StateManager.set('player.retryCount', retryCount + 1);
+
+            this.showError('Retrying in ' + (delay / 1000) + 's... (Attempt ' + (retryCount + 1) + '/' + maxRetries + ')');
+
+            var self = this;
+            STATE.timers.retryTimeout = setTimeout(async function() {
+                try {
+                    console.log('[PLAYER] Executing retry attempt ' + (retryCount + 1));
+                    var source = STATE.player.availableSources[STATE.player.currentSourceIndex];
+                    if (source) {
+                        await self.playStream(source);
+                        self.hideError();
+                        self.hideLoading();
+                        StateManager.set('player.isPlaying', true);
+                        StateManager.set('player.hasError', false);
+                        console.log('[PLAYER] Retry SUCCESSFUL!');
+                        console.error('[PLAYER] ========================================');
+                    }
+                } catch (retryError) {
+                    console.error('[PLAYER] Retry failed:', retryError.message);
+                    self.handlePlaybackError(retryError);
+                }
+            }, delay);
+        } else {
+            console.log('[PLAYER] Max retries reached');
+            
+            if (currentSourceIndex + 1 < totalSources) {
+                console.log('[PLAYER] Auto-switching to next source in 2s...');
+                this.showError('Stream failed. Trying next source...');
+                
+                var self2 = this;
+                STATE.timers.retryTimeout = setTimeout(function() {
+                    self2.tryNextSource();
+                }, 2000);
+            } else {
+                console.error('[PLAYER] ALL SOURCES EXHAUSTED');
+                this.showError('All sources failed. Please try again later or check your internet connection.');
+                console.error('[PLAYER] ========================================');
+            }
+        }
+    },
+
+    /* ==========================================
+       PLAYER CONTROLS
+       ========================================== */
+
+    togglePlay: function() {
+        var player = STATE.player.videoJS;
+        if (!player) return;
+
+        if (player.paused()) {
+            player.play();
+            StateManager.set('player.isPlaying', true);
+            StateManager.set('player.isPaused', false);
+        } else {
+            player.pause();
+            StateManager.set('player.isPlaying', false);
+            StateManager.set('player.isPaused', true);
+        }
+    },
+
+    toggleMute: function() {
+        var player = STATE.player.videoJS;
+        if (!player) return;
+
+        var muted = !player.muted();
+        player.muted(muted);
+        StateManager.set('player.isMuted', muted);
+    },
+
+    setVolume: function(level) {
+        var player = STATE.player.videoJS;
+        if (!player) return;
+
+        var vol = Math.max(0, Math.min(1, level));
+        player.volume(vol);
+        StateManager.set('player.volume', vol);
+
+        if (vol > 0 && player.muted()) {
+            player.muted(false);
+            StateManager.set('player.isMuted', false);
+        }
+    },
+
+    toggleFullscreen: function() {
+        var player = STATE.player.videoJS;
+        if (!player) return;
+
+        if (player.isFullscreen()) {
+            player.exitFullscreen();
+            StateManager.set('player.isFullscreen', false);
+        } else {
+            player.requestFullscreen();
+            StateManager.set('player.isFullscreen', true);
+        }
+    },
+
+    togglePiP: async function() {
+        try {
+            var videoElement = STATE.player.videoElement;
+            if (!videoElement) return;
+
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+                StateManager.set('player.isPiP', false);
+            } else if (document.pictureInPictureEnabled) {
+                await videoElement.requestPictureInPicture();
+                StateManager.set('player.isPiP', true);
+            }
+        } catch (error) {
+            console.error('[PLAYER] PiP error:', error);
+        }
+    },
+
+    stop: function() {
+        console.log('[PLAYER] Stopping playback');
+        var player = STATE.player.videoJS;
+        if (player) {
+            player.pause();
+            player.reset();
+        }
+
+        if (STATE.player.hls) {
+            STATE.player.hls.destroy();
+            STATE.player.hls = null;
+        }
+
+        STATE.player.currentChannel = null;
+        STATE.player.currentSource = null;
+        STATE.player.isPlaying = false;
+        STATE.player.isPaused = true;
+        STATE.player.hasError = false;
+
+        this.hideLoading();
+        this.hideError();
+        this.showPlaceholder();
+        this.updateSourceInfo(null);
+    },
+
+    seekBy: function(seconds) {
+        var player = STATE.player.videoJS;
+        if (player) {
+            var newTime = player.currentTime() + seconds;
+            player.currentTime(Math.max(0, newTime));
+        }
+    },
+
+    /* ==========================================
+       UI OVERLAYS
+       ========================================== */
+
+    showLoading: function() {
+        var overlay = Utils.$('#player-loading');
+        if (overlay) overlay.classList.remove('hidden');
+        StateManager.set('player.isLoading', true);
+    },
+
+    hideLoading: function() {
+        var overlay = Utils.$('#player-loading');
+        if (overlay) overlay.classList.add('hidden');
+        StateManager.set('player.isLoading', false);
+    },
+
+    showError: function(message) {
+        var overlay = Utils.$('#player-error');
+        var messageEl = Utils.$('#error-message');
+        
+        if (overlay) overlay.classList.remove('hidden');
+        if (messageEl) messageEl.textContent = message;
+        
+        StateManager.set('player.hasError', true);
+        StateManager.set('player.errorMessage', message);
+    },
+
+    hideError: function() {
+        var overlay = Utils.$('#player-error');
+        if (overlay) overlay.classList.add('hidden');
+        StateManager.set('player.hasError', false);
+    },
+
+    showPlaceholder: function() {
+        var placeholder = Utils.$('#player-placeholder');
+        if (placeholder) placeholder.classList.remove('hidden');
+    },
+
+    hidePlaceholder: function() {
+        var placeholder = Utils.$('#player-placeholder');
+        if (placeholder) placeholder.classList.add('hidden');
+    },
+
+    updateSourceInfo: function(channel) {
+        var sourceInfo = Utils.$('#source-info');
+        var channelName = Utils.$('#current-channel-name');
+
+        if (sourceInfo && channelName) {
+            if (channel) {
+                sourceInfo.classList.remove('hidden');
+                channelName.textContent = channel.name || 'Unknown Channel';
+            } else {
+                sourceInfo.classList.add('hidden');
+                channelName.textContent = 'No Channel';
+            }
+        }
+    },
+
+    updateQuickChannels: function() {
+        var container = Utils.$('#quick-channel-list');
+        if (!container) return;
+
+        var channels = STATE.playlist.filteredChannels.slice(0, CONFIG.UI.MAX_QUICK_CHANNELS);
+        Utils.emptyElement(container);
+        
+        var self = this;
+        channels.forEach(function(channel) {
+            var btn = Utils.createElement('button', {
+                className: 'quick-channel-btn',
+                text: Utils.truncate(channel.name, 15),
+                title: channel.name,
+                onClick: function() { self.playChannel(channel); }
+            });
+            
+            if (channel.logo) {
+                var img = Utils.createElement('img', {
+                    src: channel.logo,
+                    alt: channel.name,
+                    style: { width: '20px', height: '20px', borderRadius: '4px' },
+                    onerror: function() { this.style.display = 'none'; }
+                });
+                btn.prepend(img);
+            }
+            
+            container.appendChild(btn);
+        });
+    },
+
+    /* ==========================================
+       EVENT HANDLERS
+       ========================================== */
+
+    setupPlayerEvents: function() {
+        var player = STATE.player.videoJS;
+        if (!player) return;
+
+        player.on('play', function() {
+            StateManager.set('player.isPlaying', true);
+            StateManager.set('player.isPaused', false);
+        });
+
+        player.on('pause', function() {
+            StateManager.set('player.isPlaying', false);
+            StateManager.set('player.isPaused', true);
+        });
+
+        player.on('volumechange', function() {
+            StateManager.set('player.volume', player.volume());
+            StateManager.set('player.isMuted', player.muted());
+        });
+
+        player.on('fullscreenchange', function() {
+            StateManager.set('player.isFullscreen', player.isFullscreen());
+        });
+
+        player.on('timeupdate', function() {
+            STATE.player.currentTime = player.currentTime();
+            STATE.player.duration = player.duration();
+        });
+
+        player.on('waiting', function() {
+            console.log('[PLAYER] Waiting/buffering...');
+            this.showLoading();
+        }.bind(this));
+
+        player.on('canplay', function() {
+            console.log('[PLAYER] Can play - hiding loading');
+            this.hideLoading();
+        }.bind(this));
+
+        player.on('ended', function() {
+            StateManager.set('player.isPlaying', false);
+            console.log('[PLAYER] Stream ended');
+        });
+    },
+
+    setupKeyboardControls: function() {
+        var self = this;
+        document.addEventListener('keydown', function(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+
+            var key = event.key.toLowerCase();
+
+            switch (key) {
+                case ' ':
+                    event.preventDefault();
+                    self.togglePlay();
+                    break;
+                case 'f':
+                    if (!event.ctrlKey && !event.metaKey) self.toggleFullscreen();
+                    break;
+                case 'm':
+                    if (!event.ctrlKey && !event.metaKey) self.toggleMute();
+                    break;
+                case 'p':
+                    if (!event.ctrlKey && !event.metaKey) self.togglePiP();
+                    break;
+                case 'arrowleft':
+                    event.preventDefault();
+                    self.seekBy(-10);
+                    break;
+                case 'arrowright':
+                    event.preventDefault();
+                    self.seekBy(10);
+                    break;
+                case 'arrowup':
+                    event.preventDefault();
+                    self.setVolume(STATE.player.volume + 0.1);
+                    break;
+                case 'arrowdown':
+                    event.preventDefault();
+                    self.setVolume(STATE.player.volume - 0.1);
+                    break;
+                case 'escape':
+                    if (STATE.player.isFullscreen) self.toggleFullscreen();
+                    break;
+            }
+        });
+    },
+
+    setupVisibilityHandling: function() {
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('[PLAYER] Page hidden');
+            } else {
+                console.log('[PLAYER] Page visible again');
+                var player = STATE.player.videoJS;
+                if (player && STATE.player.isPlaying && player.paused()) {
+                    player.play().catch(function() {});
+                }
+            }
+        });
+    },
+
+    restorePlayerState: function() {
+        var preferences = Utils.getFromStorage(CONFIG.STORAGE_KEYS.USER_PREFERENCES);
+        if (preferences) {
+            if (preferences.volume !== undefined) {
+                STATE.player.volume = preferences.volume;
+                if (STATE.player.videoJS) STATE.player.videoJS.volume(preferences.volume);
+            }
+            if (preferences.isMuted !== undefined) {
+                STATE.player.isMuted = preferences.isMuted;
+                if (STATE.player.videoJS) STATE.player.videoJS.muted(preferences.isMuted);
+            }
+        }
     },
 
     /* ==========================================
        CLEANUP
        ========================================== */
 
-    /**
-     * Clean up application before unload
-     */
-    destroy() {
-        console.log('[APP] Cleaning up application...');
+    destroy: function() {
+        console.log('[PLAYER] Destroying player...');
 
-        // Destroy all modules
-        PlayerModule.destroy();
-        GitHubAPI.destroy();
-        FootballAPI.destroy();
-        BreakingNewsAPI.destroy();
-        ThemeManager.destroy();
-        ToastManager.destroy();
-        HeaderComponent.destroy();
-        SidebarComponent.destroy();
-        TickerComponent.destroy();
-        MatchesComponent.destroy();
-        ChannelsComponent.destroy();
-        ModalManager.destroy();
+        if (STATE.timers.retryTimeout) {
+            clearTimeout(STATE.timers.retryTimeout);
+            STATE.timers.retryTimeout = null;
+        }
 
-        // Clear all timers
-        StateManager.clearAllTimers();
+        if (STATE.player.hls) {
+            STATE.player.hls.destroy();
+            STATE.player.hls = null;
+        }
 
-        // Abort all fetches
-        StateManager.abortAllFetches();
+        if (STATE.player.videoJS) {
+            STATE.player.videoJS.dispose();
+            STATE.player.videoJS = null;
+        }
 
-        // Persist state
-        StateManager.persistState();
+        var wrapper = Utils.$('.player-wrapper');
+        if (wrapper) {
+            var iframes = Utils.$$('.embed-iframe', wrapper);
+            iframes.forEach(function(iframe) { iframe.remove(); });
+        }
 
-        console.log('[APP] Cleanup complete');
-    },
+        console.log('[PLAYER] Player destroyed');
+    }
 };
 
-/* ==========================================
-   APP STARTUP
-   ========================================== */
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        XBZPrimeTV.init();
-    });
-} else {
-    // DOM already ready
-    XBZPrimeTV.init();
-}
-
-// Handle page unload
-window.addEventListener('beforeunload', () => {
-    XBZPrimeTV.destroy();
-});
-
-// Handle visibility change for performance
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        // Page hidden - reduce activity
-        console.log('[APP] Page hidden');
-    } else {
-        // Page visible - resume activity
-        console.log('[APP] Page visible');
-        StateManager.set('app.lastActivity', Date.now());
-    }
-});
-
-// Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = XBZPrimeTV;
+    module.exports = PlayerModule;
 }
