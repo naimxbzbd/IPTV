@@ -1,511 +1,200 @@
 /*=============================================
-  XBZ Prime TV - Breaking News API Module
-  Fetch Breaking News from GitHub Raw JSON
+  XBZ Prime TV - Breaking News API
+  Fetch & Display Breaking News Ticker
   =============================================*/
 
 'use strict';
 
-var BreakingNewsAPI = {
+const BreakingNewsAPI = {
+    /* ==========================================
+       STATE
+       ========================================== */
+
+    breakingNewsUrl: CONFIG.GITHUB_BREAKING_NEWS_URL,
+    abortController: null,
+    updateInterval: null,
+
+    /* ==========================================
+       INITIALIZATION
+       ========================================== */
+
     /**
-     * Fetch breaking news from GitHub raw URL
+     * Initialize Breaking News API
      */
-    fetchBreakingNews: async function(force) {
-        if (force === undefined) force = false;
-
-        if (!force) {
-            var cached = Utils.getFromStorage(
-                CONFIG.STORAGE_KEYS.BREAKING_NEWS,
-                CONFIG.CACHE_BREAKING_NEWS
-            );
-            if (cached && cached.length > 0) {
-                console.log('[BREAKING] Using cached breaking news');
-                return cached;
-            }
-        }
-
-        StateManager.set('breakingNews.isLoading', true);
-        StateManager.set('breakingNews.error', null);
-
+    async init() {
+        console.log('[BREAKING] Initializing Breaking News API...');
+        
         try {
-            console.log('[BREAKING] Fetching breaking news...');
-
-            var controller = new AbortController();
-            STATE.abortControllers.breakingNewsFetch = controller;
-
-            var response;
+            await this.fetchBreakingNews();
+            this.setupAutoRefresh();
             
-            try {
-                response = await fetch(CONFIG.GITHUB_BREAKING_NEWS_URL, {
-                    signal: controller.signal,
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json, text/plain, */*'
-                    }
-                });
-                console.log('[BREAKING] Direct fetch successful');
-            } catch (directError) {
-                console.log('[BREAKING] Direct fetch failed, error:', directError.message);
+            console.log('[BREAKING] Breaking News API initialized');
+        } catch (error) {
+            console.error('[BREAKING] Error initializing Breaking News API:', error);
+            // Don't throw - breaking news is optional
+        }
+    },
+
+    /* ==========================================
+       FETCH BREAKING NEWS
+       ========================================== */
+
+    /**
+     * Fetch breaking news
+     * @param {boolean} forceRefresh - Force bypass cache
+     */
+    async fetchBreakingNews(forceRefresh = false) {
+        console.log('[BREAKING] Fetching breaking news...');
+        
+        StateManager.set('breakingNews.isLoading', true);
+        
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+        
+        try {
+            // Check cache if not forced
+            if (!forceRefresh) {
+                const cached = Utils.getFromStorage(
+                    CONFIG.STORAGE_KEYS.BREAKING_NEWS,
+                    CONFIG.CACHE_BREAKING_NEWS
+                );
                 
-                if (CONFIG.CORS_PROXY) {
-                    console.log('[BREAKING] Trying CORS proxy...');
-                    var proxyUrl = CONFIG.CORS_PROXY + encodeURIComponent(CONFIG.GITHUB_BREAKING_NEWS_URL);
-                    response = await fetch(proxyUrl, {
-                        signal: controller.signal,
-                        cache: 'no-cache',
-                        headers: {
-                            'Accept': 'application/json, text/plain, */*'
-                        }
-                    });
-                    console.log('[BREAKING] Proxy fetch successful');
-                } else {
-                    throw directError;
+                if (cached && cached.length > 0) {
+                    console.log('[BREAKING] Using cached news:', cached.length);
+                    StateManager.set('breakingNews.items', cached);
+                    StateManager.set('breakingNews.isLoading', false);
+                    StateManager.set('breakingNews.isLoaded', true);
+                    return cached;
                 }
             }
-
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-            }
-
-            var text = await response.text();
-            var data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                throw new Error('Invalid JSON response from breaking news');
-            }
-
-            var newsItems = this.processNewsData(data);
-            console.log('[BREAKING] Fetched ' + newsItems.length + ' news items');
-
-            Utils.setToStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS, newsItems);
-            Utils.setToStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS_TIMESTAMP, Date.now());
-
-            StateManager.set('breakingNews.items', newsItems);
+            
+            const response = await Utils.fetchWithTimeout(
+                this.breakingNewsUrl,
+                {},
+                10000,
+                2
+            );
+            
+            const data = await response.json();
+            const items = Array.isArray(data) ? data : data.items || [];
+            
+            console.log('[BREAKING] Fetched', items.length, 'news items');
+            
+            // Update state
+            StateManager.set('breakingNews.items', items);
             StateManager.set('breakingNews.isLoaded', true);
             StateManager.set('breakingNews.lastUpdated', new Date().toISOString());
             StateManager.set('breakingNews.isLoading', false);
-
-            Utils.triggerEvent(document.body, 'breakingnews:loaded', {
-                count: newsItems.length
+            
+            // Cache
+            Utils.setToStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS, items);
+            Utils.setToStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS_TIMESTAMP, Date.now());
+            
+            // Trigger event
+            Utils.triggerEvent(document.body, 'breaking:loaded', {
+                total: items.length,
             });
-
-            return newsItems;
-
+            
+            return items;
         } catch (error) {
             console.error('[BREAKING] Error fetching breaking news:', error);
-
+            
             StateManager.set('breakingNews.error', error.message);
             StateManager.set('breakingNews.isLoading', false);
-
-            var cached = Utils.getFromStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS);
+            
+            // Try cache fallback
+            const cached = Utils.getFromStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS);
             if (cached && cached.length > 0) {
-                console.log('[BREAKING] Using cached breaking news as fallback');
                 StateManager.set('breakingNews.items', cached);
                 StateManager.set('breakingNews.isLoaded', true);
+                console.log('[BREAKING] Using', cached.length, 'fallback news items');
                 return cached;
             }
-
-            var fallback = this.generateFallbackNews();
-            StateManager.set('breakingNews.items', fallback);
-            StateManager.set('breakingNews.isLoaded', true);
-            console.log('[BREAKING] Using fallback news data');
-            return fallback;
-        }
-    },
-
-    /**
-     * Process raw news data into normalized format
-     */
-    processNewsData: function(data) {
-        try {
-            var items = [];
-
-            if (Array.isArray(data)) {
-                items = data;
-            } else if (typeof data === 'object' && data !== null) {
-                items = data.breaking || data.news || data.items || data.data || [];
-                if (!Array.isArray(items)) {
-                    items = [data];
-                }
-            }
-
-            var self = this;
-            return items
-                .map(function(item, index) {
-                    return self.normalizeNewsItem(item, index);
-                })
-                .filter(function(item) {
-                    return item !== null && item.title && item.title.trim();
-                });
-
-        } catch (error) {
-            console.error('[BREAKING] Error processing news data:', error);
-            return [];
-        }
-    },
-
-    /**
-     * Normalize a single news item
-     */
-    normalizeNewsItem: function(item, index) {
-        try {
-            if (!item) return null;
-
-            if (typeof item === 'string') {
-                return {
-                    id: Utils.generateId('news'),
-                    title: item.trim(),
-                    content: item.trim(),
-                    url: null,
-                    category: 'General',
-                    timestamp: new Date().toISOString(),
-                    priority: 'normal',
-                    isLive: false,
-                    source: null
-                };
-            }
-
-            if (typeof item === 'object') {
-                return {
-                    id: item.id || Utils.generateId('news'),
-                    title: (item.title || item.headline || item.text || '').trim(),
-                    content: (item.content || item.description || item.body || item.title || '').trim(),
-                    url: item.url || item.link || item.href || null,
-                    category: (item.category || item.type || item.tag || 'General').trim(),
-                    timestamp: item.timestamp || item.date || item.time || item.publishedAt || new Date().toISOString(),
-                    priority: (item.priority || item.level || 'normal').toLowerCase(),
-                    isLive: item.isLive || item.live || item.breaking || false,
-                    source: item.source || item.author || null,
-                    image: item.image || item.thumbnail || null
-                };
-            }
-
-            return null;
-
-        } catch (error) {
-            console.error('[BREAKING] Error normalizing news item:', error);
-            return null;
-        }
-    },
-
-    /**
-     * Get breaking/live news only
-     */
-    getBreakingItems: function() {
-        return STATE.breakingNews.items.filter(function(item) {
-            return item.isLive || item.priority === 'high' || item.priority === 'breaking';
-        });
-    },
-
-    /**
-     * Get news by category
-     */
-    getNewsByCategory: function(category) {
-        return STATE.breakingNews.items.filter(function(item) {
-            return item.category.toLowerCase() === category.toLowerCase();
-        });
-    },
-
-    /**
-     * Get recent news
-     */
-    getRecentNews: function(count) {
-        if (count === undefined) count = 10;
-        
-        return STATE.breakingNews.items.slice().sort(function(a, b) {
-            return new Date(b.timestamp) - new Date(a.timestamp);
-        }).slice(0, count);
-    },
-
-    /**
-     * Format news for marquee ticker display
-     */
-    getTickerItems: function() {
-        var items = STATE.breakingNews.items;
-
-        if (items.length === 0) {
-            return [{
-                id: 'default',
-                text: 'Welcome to XBZ Prime TV - Premium Sports Live Streaming',
-                isLive: false,
-                priority: 'normal',
-                category: 'General'
-            }];
-        }
-
-        return items.map(function(item) {
-            return {
-                id: item.id,
-                text: item.title,
-                url: item.url,
-                isLive: item.isLive,
-                priority: item.priority,
-                category: item.category
-            };
-        });
-    },
-
-    /**
-     * Generate HTML for ticker content
-     */
-    generateTickerHTML: function() {
-        var items = this.getTickerItems();
-
-        if (items.length === 0) {
-            return '<span class="ticker-item">No breaking news available</span>';
-        }
-
-        var duplicatedItems = [];
-        for (var i = 0; i < CONFIG.UI.MARQUEE_DUPLICATE_COUNT; i++) {
-            duplicatedItems = duplicatedItems.concat(items);
-        }
-
-        var html = '';
-        duplicatedItems.forEach(function(item, index) {
-            var separator = index > 0 ? '<span class="ticker-separator">|</span>' : '';
-            var liveBadge = item.isLive ? '<span class="live-dot"></span> ' : '';
             
-            var content;
-            if (item.url) {
-                content = '<a href="' + Utils.escapeHTML(item.url) + '" target="_blank" rel="noopener noreferrer">' + Utils.escapeHTML(item.text) + '</a>';
-            } else {
-                content = Utils.escapeHTML(item.text);
-            }
-
-            html += separator + '<span class="ticker-item">' + liveBadge + content + '</span>';
-        });
-
-        return html;
-    },
-
-    /**
-     * Start auto-refresh for breaking news
-     */
-    startAutoRefresh: function() {
-        this.stopAutoRefresh();
-
-        console.log('[BREAKING] Starting auto-refresh every ' + (CONFIG.REFRESH_BREAKING_NEWS / 1000) + 's');
-
-        var self = this;
-        STATE.timers.breakingNewsRefresh = setInterval(async function() {
-            try {
-                console.log('[BREAKING] Auto-refreshing breaking news...');
-                await self.fetchBreakingNews(true);
-                self.updateTickerDOM();
-                console.log('[BREAKING] Auto-refresh complete');
-            } catch (error) {
-                console.error('[BREAKING] Auto-refresh failed:', error);
-            }
-        }, CONFIG.REFRESH_BREAKING_NEWS);
-    },
-
-    /**
-     * Stop auto-refresh
-     */
-    stopAutoRefresh: function() {
-        if (STATE.timers.breakingNewsRefresh) {
-            clearInterval(STATE.timers.breakingNewsRefresh);
-            STATE.timers.breakingNewsRefresh = null;
-            console.log('[BREAKING] Auto-refresh stopped');
+            // Use generated fallback
+            return this.generateFallbackNews();
         }
     },
 
     /**
-     * Update ticker DOM element with latest news
+     * Generate fallback news
      */
-    updateTickerDOM: function() {
-        try {
-            var tickerContent = Utils.$('#ticker-content');
-            if (tickerContent) {
-                tickerContent.innerHTML = this.generateTickerHTML();
-            }
-        } catch (error) {
-            console.error('[BREAKING] Error updating ticker DOM:', error);
-        }
-    },
-
-    /**
-     * Generate fallback news for offline/error states
-     */
-    generateFallbackNews: function() {
+    generateFallbackNews() {
         console.log('[BREAKING] Generating fallback news data');
-
-        return [
+        
+        const fallback = [
             {
                 id: 'fallback-1',
-                title: 'Welcome to XBZ Prime TV - Your Premium Sports Streaming Platform',
-                content: 'Watch live sports from around the world on XBZ Prime TV.',
-                url: null,
+                title: 'Welcome to XBZ Prime TV',
+                content: 'Premium sports streaming platform',
                 category: 'Sports',
                 timestamp: new Date().toISOString(),
                 priority: 'high',
-                isLive: true,
-                source: 'XBZ Prime TV'
             },
             {
                 id: 'fallback-2',
-                title: 'Multiple Sports Channels Available - Football, Cricket & More',
-                content: 'Access hundreds of live sports channels in HD quality.',
-                url: null,
+                title: 'Live Matches Available',
+                content: 'Watch football, cricket and more',
                 category: 'Sports',
                 timestamp: new Date().toISOString(),
-                priority: 'normal',
-                isLive: false,
-                source: 'XBZ Prime TV'
+                priority: 'high',
             },
             {
                 id: 'fallback-3',
-                title: 'Live Scores Updated Automatically - Stay Connected',
-                content: 'Real-time football scores and match updates available.',
-                url: null,
-                category: 'Football',
+                title: 'Multiple Sports Channels',
+                content: 'Access to hundreds of live channels',
+                category: 'Sports',
                 timestamp: new Date().toISOString(),
-                priority: 'normal',
-                isLive: true,
-                source: 'XBZ Prime TV'
+                priority: 'medium',
             },
-            {
-                id: 'fallback-4',
-                title: 'Install XBZ Prime TV as PWA for the Best Experience',
-                content: 'Add to home screen for quick access to live sports.',
-                url: null,
-                category: 'App',
-                timestamp: new Date().toISOString(),
-                priority: 'normal',
-                isLive: false,
-                source: 'XBZ Prime TV'
-            },
-            {
-                id: 'fallback-5',
-                title: 'Stream from Multiple Sources - Auto Failover Support',
-                content: 'If one stream fails, automatically try the next available source.',
-                url: null,
-                category: 'Tech',
-                timestamp: new Date().toISOString(),
-                priority: 'normal',
-                isLive: false,
-                source: 'XBZ Prime TV'
-            }
         ];
+        
+        StateManager.set('breakingNews.items', fallback);
+        StateManager.set('breakingNews.isLoaded', true);
+        
+        return fallback;
     },
 
+    /* ==========================================
+       AUTO REFRESH
+       ========================================== */
+
     /**
-     * Search news items
+     * Set up auto-refresh
      */
-    searchNews: function(query) {
-        if (!query || query.trim() === '') {
-            return STATE.breakingNews.items;
-        }
-
-        var searchTerms = query.toLowerCase().trim().split(/\s+/);
-
-        return STATE.breakingNews.items.filter(function(item) {
-            var searchText = [
-                item.title,
-                item.content,
-                item.category,
-                item.source
-            ].join(' ').toLowerCase();
-
-            return searchTerms.every(function(term) {
-                return searchText.indexOf(term) !== -1;
+    setupAutoRefresh() {
+        this.updateInterval = setInterval(() => {
+            console.log('[BREAKING] Auto-refreshing news...');
+            this.fetchBreakingNews(true).catch(error => {
+                console.error('[BREAKING] Auto-refresh error:', error);
             });
-        });
+        }, CONFIG.REFRESH_BREAKING_NEWS);
+        
+        STATE.timers.breakingNewsRefresh = this.updateInterval;
+        console.log('[BREAKING] Auto-refresh set up');
     },
 
-    /**
-     * Get breaking news statistics
-     */
-    getStats: function() {
-        var items = STATE.breakingNews.items;
-
-        var categories = [];
-        items.forEach(function(item) {
-            if (categories.indexOf(item.category) === -1) {
-                categories.push(item.category);
-            }
-        });
-
-        var hasLiveNews = items.some(function(item) {
-            return item.isLive;
-        });
-
-        return {
-            total: items.length,
-            breaking: this.getBreakingItems().length,
-            categories: categories,
-            lastUpdated: STATE.breakingNews.lastUpdated,
-            hasLiveNews: hasLiveNews,
-            source: 'GitHub Raw',
-            url: CONFIG.GITHUB_BREAKING_NEWS_URL
-        };
-    },
+    /* ==========================================
+       CLEANUP
+       ========================================== */
 
     /**
-     * Clear breaking news cache
+     * Destroy Breaking News API
      */
-    clearCache: function() {
-        Utils.removeFromStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS);
-        Utils.removeFromStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS_TIMESTAMP);
-        console.log('[BREAKING] Cache cleared');
-    },
-
-    /**
-     * Check if cache is valid
-     */
-    isCacheValid: function() {
-        var cached = Utils.getFromStorage(
-            CONFIG.STORAGE_KEYS.BREAKING_NEWS,
-            CONFIG.CACHE_BREAKING_NEWS
-        );
-        return cached !== null && cached.length > 0;
-    },
-
-    /**
-     * Initialize Breaking News API module
-     */
-    init: async function() {
-        console.log('[BREAKING] Initializing Breaking News module...');
-
-        try {
-            var news = await this.fetchBreakingNews();
-            this.updateTickerDOM();
-            this.startAutoRefresh();
-            console.log('[BREAKING] Initialized with ' + news.length + ' news items');
-            return news;
-
-        } catch (error) {
-            console.error('[BREAKING] Initialization error:', error);
-
-            var cached = Utils.getFromStorage(CONFIG.STORAGE_KEYS.BREAKING_NEWS);
-            if (cached && cached.length > 0) {
-                StateManager.set('breakingNews.items', cached);
-                StateManager.set('breakingNews.isLoaded', true);
-                this.updateTickerDOM();
-                console.log('[BREAKING] Loaded ' + cached.length + ' items from cache');
-                return cached;
-            }
-
-            var fallback = this.generateFallbackNews();
-            StateManager.set('breakingNews.items', fallback);
-            StateManager.set('breakingNews.isLoaded', true);
-            this.updateTickerDOM();
-            console.log('[BREAKING] Using ' + fallback.length + ' fallback items');
-            return fallback;
+    destroy() {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
         }
-    },
-
-    /**
-     * Cleanup
-     */
-    destroy: function() {
-        this.stopAutoRefresh();
-        if (STATE.abortControllers.breakingNewsFetch) {
-            STATE.abortControllers.breakingNewsFetch.abort();
+        
+        if (this.abortController) {
+            this.abortController.abort();
         }
-        console.log('[BREAKING] Breaking News module destroyed');
-    }
+        
+        console.log('[BREAKING] Breaking News API destroyed');
+    },
 };
 
 // Export for module usage

@@ -1,340 +1,265 @@
 /*=============================================
-  XBZ Prime TV - GitHub API Module
-  Fetch & Parse Playlist from GitHub Raw URLs
+  XBZ Prime TV - GitHub API
+  Fetch & Parse M3U Playlists from GitHub
   =============================================*/
 
 'use strict';
 
-var GitHubAPI = {
+const GitHubAPI = {
+    /* ==========================================
+       STATE
+       ========================================== */
+
+    playlistUrls: CONFIG.GITHUB_PLAYLIST_URLS,
+    abortController: null,
+    updateInterval: null,
+
+    /* ==========================================
+       INITIALIZATION
+       ========================================== */
+
     /**
-     * Fetch playlist from all configured GitHub URLs
+     * Initialize GitHub API - fetch and parse playlists
      */
-    fetchPlaylist: async function(force) {
-        if (force === undefined) force = false;
-
-        if (!force) {
-            var cached = Utils.getFromStorage(
-                CONFIG.STORAGE_KEYS.PLAYLIST,
-                CONFIG.CACHE_PLAYLIST
-            );
-            if (cached && cached.length > 0) {
-                console.log('[GITHUB] Using cached playlist');
-                return cached;
-            }
-        }
-
-        StateManager.set('playlist.isLoading', true);
-        StateManager.set('playlist.error', null);
-
+    async init() {
+        console.log('[GITHUB] Initializing GitHub API...');
+        
         try {
-            console.log('[GITHUB] Fetching playlists from GitHub...');
+            await this.fetchPlaylist();
             
-            var controller = new AbortController();
-            STATE.abortControllers.playlistFetch = controller;
+            // Set up auto-refresh
+            this.setupAutoRefresh();
+            
+            console.log('[GITHUB] GitHub API initialized');
+        } catch (error) {
+            console.error('[GITHUB] Error initializing GitHub API:', error);
+            throw error;
+        }
+    },
 
-            var self = this;
-            var promises = CONFIG.GITHUB_PLAYLIST_URLS.map(function(url) {
-                return self.fetchSinglePlaylist(url, controller.signal);
-            });
+    /* ==========================================
+       PLAYLIST FETCHING
+       ========================================== */
 
-            var results = await Promise.allSettled(promises);
-
-            var allChannels = [];
-            var successCount = 0;
-            var errors = [];
-
-            results.forEach(function(result, index) {
-                if (result.status === 'fulfilled' && result.value) {
-                    allChannels = allChannels.concat(result.value);
-                    successCount++;
-                    console.log('[GITHUB] Playlist ' + (index + 1) + ' fetched: ' + result.value.length + ' channels');
-                } else {
-                    var error = result.reason || result.value;
-                    errors.push('Source ' + (index + 1) + ': ' + (error && error.message ? error.message : 'Unknown error'));
-                    console.error('[GITHUB] Playlist ' + (index + 1) + ' failed:', error);
+    /**
+     * Fetch playlist from GitHub
+     * @param {boolean} forceRefresh - Force bypass cache
+     */
+    async fetchPlaylist(forceRefresh = false) {
+        console.log('[GITHUB] Fetching playlist...');
+        
+        StateManager.set('playlist.isLoading', true);
+        
+        // Abort any previous requests
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+        
+        try {
+            // Check cache if not forced
+            if (!forceRefresh) {
+                const cached = Utils.getFromStorage(
+                    CONFIG.STORAGE_KEYS.PLAYLIST,
+                    CONFIG.CACHE_PLAYLIST
+                );
+                
+                if (cached && cached.length > 0) {
+                    console.log('[GITHUB] Using cached playlist:', cached.length, 'channels');
+                    StateManager.set('playlist.channels', cached);
+                    StateManager.set('playlist.categories', Utils.extractCategories(cached));
+                    StateManager.set('playlist.isLoading', false);
+                    StateManager.set('playlist.isLoaded', true);
+                    StateManager.set('playlist.lastUpdated', new Date().toISOString());
+                    return cached;
                 }
-            });
-
-            if (successCount === 0) {
-                throw new Error('All playlist sources failed:\n' + errors.join('\n'));
             }
 
-            var uniqueChannels = Utils.removeDuplicateChannels(allChannels);
-            console.log('[GITHUB] Total unique channels: ' + uniqueChannels.length);
+            let allChannels = [];
+            let successCount = 0;
 
-            var categories = Utils.extractCategories(uniqueChannels);
-            console.log('[GITHUB] Categories found: ' + categories.length);
+            // Fetch from all URLs
+            for (const url of this.playlistUrls) {
+                try {
+                    console.log('[GITHUB] Fetching from:', url);
+                    
+                    const response = await Utils.fetchWithTimeout(url, {}, 15000, 2);
+                    const text = await response.text();
+                    
+                    const channels = Utils.parseM3U(text);
+                    console.log('[GITHUB] Parsed', channels.length, 'channels from:', url);
+                    
+                    allChannels = allChannels.concat(channels);
+                    successCount++;
+                } catch (error) {
+                    console.warn('[GITHUB] Failed to fetch from', url, ':', error);
+                }
+            }
 
-            Utils.setToStorage(CONFIG.STORAGE_KEYS.PLAYLIST, uniqueChannels);
-            Utils.setToStorage(CONFIG.STORAGE_KEYS.PLAYLIST_TIMESTAMP, Date.now());
+            // Remove duplicates
+            allChannels = Utils.removeDuplicateChannels(allChannels);
+            
+            if (allChannels.length === 0) {
+                throw new Error('No channels found in any playlist');
+            }
 
-            StateManager.set('playlist.channels', uniqueChannels);
+            console.log('[GITHUB] Total channels loaded:', allChannels.length, 'from', successCount, 'sources');
+
+            // Extract categories
+            const categories = Utils.extractCategories(allChannels);
+            
+            // Update state
+            StateManager.set('playlist.channels', allChannels);
             StateManager.set('playlist.categories', categories);
             StateManager.set('playlist.isLoaded', true);
             StateManager.set('playlist.lastUpdated', new Date().toISOString());
-            StateManager.set('playlist.source', CONFIG.GITHUB_PLAYLIST_URLS[0]);
-            StateManager.set('playlist.isLoading', false);
-
+            StateManager.set('playlist.source', 'github');
+            
+            // Cache playlist
+            Utils.setToStorage(CONFIG.STORAGE_KEYS.PLAYLIST, allChannels);
+            Utils.setToStorage(CONFIG.STORAGE_KEYS.PLAYLIST_TIMESTAMP, Date.now());
+            
+            // Trigger event
             Utils.triggerEvent(document.body, 'playlist:loaded', {
-                count: uniqueChannels.length,
-                categories: categories.length
+                total: allChannels.length,
+                categories: categories.length,
             });
 
-            return uniqueChannels;
-
+            return allChannels;
         } catch (error) {
             console.error('[GITHUB] Error fetching playlist:', error);
             
             StateManager.set('playlist.error', error.message);
-            StateManager.set('playlist.isLoading', false);
-
-            var cached = Utils.getFromStorage(CONFIG.STORAGE_KEYS.PLAYLIST);
-            if (cached && cached.length > 0) {
-                console.log('[GITHUB] Using cached playlist as fallback');
-                StateManager.set('playlist.channels', cached);
-                StateManager.set('playlist.categories', Utils.extractCategories(cached));
-                StateManager.set('playlist.isLoaded', true);
-                return cached;
-            }
-
-            throw error;
-        }
-    },
-
-    /**
-     * Fetch a single playlist from URL
-     */
-    fetchSinglePlaylist: async function(url, signal) {
-        try {
-            var response;
-            var usedProxy = false;
             
-            try {
-                response = await fetch(url, {
-                    signal: signal,
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'text/plain, application/x-mpegurl, */*'
-                    }
-                });
-                console.log('[GITHUB] Direct fetch successful for: ' + url.substring(0, 60) + '...');
-            } catch (directError) {
-                console.log('[GITHUB] Direct fetch failed, error:', directError.message);
-                
-                if (CONFIG.CORS_PROXY) {
-                    console.log('[GITHUB] Trying CORS proxy...');
-                    var proxyUrl = CONFIG.CORS_PROXY + encodeURIComponent(url);
-                    response = await fetch(proxyUrl, {
-                        signal: signal,
-                        cache: 'no-cache',
-                        headers: {
-                            'Accept': 'text/plain, application/x-mpegurl, */*'
-                        }
-                    });
-                    usedProxy = true;
-                    console.log('[GITHUB] Proxy fetch successful');
-                } else {
-                    throw directError;
-                }
-            }
-
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-            }
-
-            var contentType = response.headers.get('content-type') || '';
-            var text = await response.text();
-
-            if (!text || text.trim().length === 0) {
-                throw new Error('Empty playlist response');
-            }
-
-            console.log('[GITHUB] Playlist fetched ' + (usedProxy ? 'via proxy' : 'directly') + ' - ' + text.length + ' bytes');
-
-            if (text.indexOf('#EXTM3U') !== -1 || text.indexOf('#EXTINF:') !== -1) {
-                console.log('[GITHUB] Parsing as M3U playlist');
-                return Utils.parseM3U(text);
-            }
-
-            if (contentType.indexOf('json') !== -1 || text.trim().charAt(0) === '{' || text.trim().charAt(0) === '[') {
-                try {
-                    var json = JSON.parse(text);
-                    return this.parseJSONPlaylist(json);
-                } catch (e) {
-                    console.log('[GITHUB] JSON parse failed, trying M3U...');
-                    return Utils.parseM3U(text);
-                }
-            }
-
-            return Utils.parseM3U(text);
-
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Playlist fetch aborted');
-            }
-            throw error;
+            // Try fallback
+            return this.getFallbackPlaylist();
+        } finally {
+            StateManager.set('playlist.isLoading', false);
         }
     },
 
     /**
-     * Parse JSON format playlist
+     * Get fallback playlist for offline/error states
      */
-    parseJSONPlaylist: function(json) {
-        var channels = [];
-        try {
-            if (Array.isArray(json)) {
-                json.forEach(function(item, index) {
-                    if (item.url || item.stream || item.link) {
-                        channels.push({
-                            id: Utils.generateId('ch'),
-                            name: item.name || item.title || item.channel || ('Channel ' + (index + 1)),
-                            url: item.url || item.stream || item.link || '',
-                            logo: item.logo || item.icon || item.image || '',
-                            group: item.group || item.category || item.genre || 'General',
-                            category: Utils.capitalize(item.group || item.category || item.genre || 'General'),
-                            quality: item.quality || Utils.detectQuality((item.name || '') + (item.url || '')),
-                            isLive: item.isLive || item.live || false
-                        });
-                    }
-                });
-            } else if (typeof json === 'object' && json !== null) {
-                var items = json.channels || json.data || json.items || json.streams || [];
-                if (Array.isArray(items)) {
-                    return this.parseJSONPlaylist(items);
-                }
-                Object.keys(json).forEach(function(key) {
-                    var value = json[key];
-                    if (value && typeof value === 'object' && (value.url || value.stream)) {
-                        channels.push({
-                            id: Utils.generateId('ch'),
-                            name: value.name || value.title || key,
-                            url: value.url || value.stream || '',
-                            logo: value.logo || value.icon || '',
-                            group: value.group || value.category || 'General',
-                            category: Utils.capitalize(value.group || value.category || 'General'),
-                            quality: value.quality || 'HD',
-                            isLive: value.isLive || false
-                        });
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('[GITHUB] Error parsing JSON playlist:', error);
-        }
-        return channels;
-    },
-
-    /**
-     * Start auto-refresh interval for playlist
-     */
-    startAutoRefresh: function() {
-        this.stopAutoRefresh();
-        console.log('[GITHUB] Starting auto-refresh every ' + (CONFIG.REFRESH_PLAYLIST / 1000) + 's');
+    getFallbackPlaylist() {
+        console.log('[GITHUB] Using fallback playlist');
         
-        var self = this;
-        STATE.timers.playlistRefresh = setInterval(async function() {
-            try {
-                console.log('[GITHUB] Auto-refreshing playlist...');
-                await self.fetchPlaylist(true);
-                console.log('[GITHUB] Auto-refresh complete');
-            } catch (error) {
-                console.error('[GITHUB] Auto-refresh failed:', error);
-            }
+        const fallback = [
+            {
+                id: Utils.generateId('ch'),
+                name: 'Test Stream 1',
+                url: 'https://test-streams.com/stream1.m3u8',
+                logo: '',
+                group: 'Sports',
+                category: 'Sports',
+                quality: 'HD',
+                isLive: true,
+            },
+            {
+                id: Utils.generateId('ch'),
+                name: 'Test Stream 2',
+                url: 'https://test-streams.com/stream2.m3u8',
+                logo: '',
+                group: 'Sports',
+                category: 'Sports',
+                quality: 'HD',
+                isLive: true,
+            },
+        ];
+        
+        StateManager.set('playlist.channels', fallback);
+        StateManager.set('playlist.categories', ['Sports']);
+        StateManager.set('playlist.isLoaded', true);
+        
+        return fallback;
+    },
+
+    /* ==========================================
+       CHANNEL OPERATIONS
+       ========================================== */
+
+    /**
+     * Get channel by index
+     */
+    getChannelByIndex(index) {
+        return STATE.playlist.channels[index] || null;
+    },
+
+    /**
+     * Get channel by name
+     */
+    getChannelByName(name) {
+        return STATE.playlist.channels.find(ch => 
+            ch.name.toLowerCase() === name.toLowerCase()
+        ) || null;
+    },
+
+    /**
+     * Get channels by category
+     */
+    getChannelsByCategory(category) {
+        if (category === 'all') {
+            return STATE.playlist.channels;
+        }
+        return STATE.playlist.channels.filter(ch => 
+            ch.category.toLowerCase() === category.toLowerCase()
+        );
+    },
+
+    /**
+     * Search channels
+     */
+    searchChannels(query) {
+        if (!query || query.trim() === '') {
+            return STATE.playlist.channels;
+        }
+        
+        const q = query.toLowerCase();
+        return STATE.playlist.channels.filter(ch => 
+            ch.name.toLowerCase().includes(q) ||
+            ch.category.toLowerCase().includes(q) ||
+            (ch.group && ch.group.toLowerCase().includes(q))
+        );
+    },
+
+    /* ==========================================
+       AUTO REFRESH
+       ========================================== */
+
+    /**
+     * Set up auto-refresh of playlist
+     */
+    setupAutoRefresh() {
+        this.updateInterval = setInterval(() => {
+            console.log('[GITHUB] Auto-refreshing playlist...');
+            this.fetchPlaylist(true).catch(error => {
+                console.error('[GITHUB] Auto-refresh error:', error);
+            });
         }, CONFIG.REFRESH_PLAYLIST);
+        
+        STATE.timers.playlistRefresh = this.updateInterval;
+        console.log('[GITHUB] Auto-refresh set up');
     },
 
+    /* ==========================================
+       CLEANUP
+       ========================================== */
+
     /**
-     * Stop auto-refresh interval
+     * Destroy GitHub API
      */
-    stopAutoRefresh: function() {
-        if (STATE.timers.playlistRefresh) {
-            clearInterval(STATE.timers.playlistRefresh);
-            STATE.timers.playlistRefresh = null;
-            console.log('[GITHUB] Auto-refresh stopped');
+    destroy() {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
         }
-    },
-
-    /**
-     * Get channel by ID
-     */
-    getChannelById: function(id) {
-        var found = null;
-        STATE.playlist.channels.forEach(function(ch) {
-            if (ch.id === id) found = ch;
-        });
-        return found;
-    },
-
-    /**
-     * Get channel by index from filtered list
-     */
-    getChannelByIndex: function(index) {
-        var channels = STATE.playlist.filteredChannels;
-        if (index >= 0 && index < channels.length) {
-            return channels[index];
+        
+        if (this.abortController) {
+            this.abortController.abort();
         }
-        return null;
+        
+        console.log('[GITHUB] GitHub API destroyed');
     },
-
-    /**
-     * Get playlist statistics
-     */
-    getStats: function() {
-        var channels = STATE.playlist.channels;
-        var stats = {
-            totalChannels: channels.length,
-            totalCategories: STATE.playlist.categories.length,
-            liveChannels: channels.filter(function(ch) { return ch.isLive; }).length,
-            hdChannels: channels.filter(function(ch) { return ch.quality === 'HD'; }).length,
-            lastUpdated: STATE.playlist.lastUpdated,
-            source: STATE.playlist.source
-        };
-
-        stats.channelsPerCategory = {};
-        STATE.playlist.categories.forEach(function(cat) {
-            stats.channelsPerCategory[cat] = channels.filter(function(ch) {
-                return ch.category.toLowerCase() === cat.toLowerCase();
-            }).length;
-        });
-
-        return stats;
-    },
-
-    /**
-     * Initialize GitHub API module
-     */
-    init: async function() {
-        console.log('[GITHUB] Initializing...');
-        try {
-            var channels = await this.fetchPlaylist();
-            this.startAutoRefresh();
-            console.log('[GITHUB] Initialized with ' + channels.length + ' channels');
-            return channels;
-        } catch (error) {
-            console.error('[GITHUB] Init error:', error);
-            var cached = Utils.getFromStorage(CONFIG.STORAGE_KEYS.PLAYLIST);
-            if (cached && cached.length > 0) {
-                StateManager.set('playlist.channels', cached);
-                StateManager.set('playlist.categories', Utils.extractCategories(cached));
-                StateManager.set('playlist.isLoaded', true);
-                console.log('[GITHUB] Loaded ' + cached.length + ' channels from cache');
-                return cached;
-            }
-            throw error;
-        }
-    },
-
-    /**
-     * Cleanup
-     */
-    destroy: function() {
-        this.stopAutoRefresh();
-        if (STATE.abortControllers.playlistFetch) {
-            STATE.abortControllers.playlistFetch.abort();
-        }
-        console.log('[GITHUB] Destroyed');
-    }
 };
 
 // Export for module usage
