@@ -6,8 +6,10 @@
 
 
 
+#EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://imglink.cc/cdn/RY7jBwPKAr.jpg", T Sports -A 
+http://114.130.57.233:8080/TsportHD/tracks-v1a1/mono.m3u8?token=SkQuhAXZxgBan1
 
-#EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://imglink.cc/cdn/RY7jBwPKAr.jpg", T Sports 
+#EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://imglink.cc/cdn/RY7jBwPKAr.jpg", T Sports- B
 http://114.130.57.233:8080/TsportHD/tracks-v1a1/mono.m3u8?token=SkQuhAXZxgBan1
 
 #EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://imglink.cc/cdn/RY7jBwPKAr.jpg", Toffee
