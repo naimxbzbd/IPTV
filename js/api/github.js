@@ -186,6 +186,13 @@ const GitHubAPI = {
     },
 
     /**
+     * Get channel by ID
+     */
+    getChannelById(id) {
+        return STATE.playlist.channels.find(ch => ch.id === id) || null;
+    },
+
+    /**
      * Get channel by name
      */
     getChannelByName(name) {
@@ -204,6 +211,17 @@ const GitHubAPI = {
         return STATE.playlist.channels.filter(ch => 
             ch.category.toLowerCase() === category.toLowerCase()
         );
+    },
+
+    /**
+     * Get playlist statistics
+     */
+    getStats() {
+        return {
+            totalCount: STATE.playlist.totalCount,
+            categoryCount: STATE.playlist.categories.length,
+            lastUpdated: STATE.playlist.lastUpdated,
+        };
     },
 
     /**

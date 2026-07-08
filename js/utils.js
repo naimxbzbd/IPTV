@@ -384,8 +384,13 @@ const Utils = {
      * Check if URL is an HLS stream
      */
     isHLSUrl(url) {
+        if (!url) return false;
+        const lowerUrl = url.toLowerCase();
         const extension = Utils.getFileExtension(url);
-        return extension === 'm3u8';
+        return extension === 'm3u8' ||
+               lowerUrl.includes('.m3u8') ||
+               lowerUrl.includes('application/vnd.apple.mpegurl') ||
+               lowerUrl.includes('type=m3u8');
     },
 
     /**
