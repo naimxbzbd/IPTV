@@ -24,8 +24,7 @@ http://180.94.28.28:8097//Somoy-TV/index.fmp4.m3u8?token=4fde3d8957e50f434586227
 
 
 
-
-EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://imglink.cc/cdn/RY7jBwPKAr.jpg", Colombia vs Switzerland Toffee
+#EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://imglink.cc/cdn/RY7jBwPKAr.jpg",  Colombia vs Switzerland Toffee
 https://prod-cdn01-live.toffeelive.com/live/FIFA-2026-2/sst/0/master_1500.m3u8?hdntl=Expires=1783539882~_GO=Generated~URLPrefix=aHR0cHM6Ly9wcm9kLWNkbjAxLWxpdmUudG9mZmVlbGl2ZS5jb20~Signature=AWIR_5GgzBwXBYr2gsEAzPPdQxQijk6xeJwGjv9dZWgfRH9VPh81VkpEJUkeSJ-cp2bFYzTkbXiI2rJW_CDobIiyFkAF
 
 #EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://imglink.cc/cdn/RY7jBwPKAr.jpg", BTV S1
