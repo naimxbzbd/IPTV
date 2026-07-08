@@ -356,6 +356,15 @@ var PlayerModule = {
 
         console.log('[PLAYER] --- Playing Stream ---');
         console.log('[PLAYER] URL:', url.substring(0, 100) + '...');
+
+        // Mixed Content Check
+        if (window.location.protocol === 'https:' && url.startsWith('http:')) {
+            console.warn('[PLAYER] Mixed Content Warning: Loading HTTP stream on HTTPS site');
+            ToastManager.warning(
+                'This stream uses an insecure (HTTP) connection and may be blocked by your browser. If it doesn\'t play, try another source.',
+                'Security Warning'
+            );
+        }
         console.log('[PLAYER] Quality:', source.quality);
 
         if (!player) {
@@ -381,7 +390,17 @@ var PlayerModule = {
         } else if (Utils.isDashUrl(url)) {
             console.log('[PLAYER] Stream type: DASH (mpd)');
             await this.playDASHStream(url, player);
-        } else if (['mp4', 'ts', 'webm', 'ogg', 'mkv'].indexOf(extension) !== -1) {
+        } else if (extension === 'ts') {
+            console.log('[PLAYER] Stream type: TS (MPEG Transport Stream)');
+            // Try HLS.js first for TS streams as it often handles them better
+            // than direct video tags in modern browsers
+            try {
+                await this.playHLSStream(url, player);
+            } catch (e) {
+                console.log('[PLAYER] HLS failed for TS, trying direct stream...');
+                await this.playDirectStream(url, player);
+            }
+        } else if (['mp4', 'webm', 'ogg', 'mkv'].indexOf(extension) !== -1) {
             console.log('[PLAYER] Stream type: Direct (' + extension + ')');
             await this.playDirectStream(url, player);
         } else {
@@ -477,7 +496,17 @@ var PlayerModule = {
                 var hls = new Hls(CONFIG.PLAYER.HLS_OPTIONS);
                 STATE.player.hls = hls;
 
-                hls.loadSource(url);
+                // Apply CORS proxy if needed for HLS manifest
+                var playUrl = url;
+                if (CONFIG.CORS_PROXY && !CONFIG.IS_LOCAL) {
+                    var urlObj = new URL(url);
+                    if (urlObj.hostname !== window.location.hostname) {
+                        playUrl = CONFIG.CORS_PROXY + encodeURIComponent(url);
+                        console.log('[PLAYER] Using CORS proxy for HLS manifest');
+                    }
+                }
+
+                hls.loadSource(playUrl);
                 hls.attachMedia(player.tech().el());
                 console.log('[PLAYER] HLS source loaded and attached');
 
