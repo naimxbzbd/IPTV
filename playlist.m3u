@@ -39,11 +39,15 @@ http://114.130.57.233:8080/Somoy-TV-3Mb/tracks-v1a1/mono.m3u8?token=SkQuhAXZxgBa
 https://stream.ottplus.live/live/zee_bangla_cinema_abr/live/zee_bangla_cinema_720/chunks.m3u8?nimblesessionid=34874228
 
 #EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkXlM7xxE8fa0_Bu49yz-CaOUwCI89Gb32b8sdPyQYyg&s=10", Server 1 
-https://trophystream.com/cors-proxy/https/1nyaler.streamhostingcdn.top/stream/23/index.m3u8
+https://pull.niues.live/live/stream-9912060_lhd.m3u8?auth_key=1783284383-0-0-ba541e77b9330eab42075af6aa5029e4
 
 #EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkXlM7xxE8fa0_Bu49yz-CaOUwCI89Gb32b8sdPyQYyg&s=10", Server 2 
 https://pull.niues.live/live/stream-9912060_lhd.m3u8?auth_key=1783284383-0-0-ba541e77b9330eab42075af6aa5029e4
 
+
+#EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkXlM7xxE8fa0_Bu49yz-CaOUwCI89Gb32b8sdPyQYyg&s=10", Server 8
+
+https://ritzembeds.pages.dev/embed/fox-usa
 #EXTINF:-1 group-title="Football World Cup 2026" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkXlM7xxE8fa0_Bu49yz-CaOUwCI89Gb32b8sdPyQYyg&s=10", Server 4 
 https://trophystream.com/cors-proxy/https/1nyaler.streamhostingcdn.top/stream/23/index.m3u8
 
